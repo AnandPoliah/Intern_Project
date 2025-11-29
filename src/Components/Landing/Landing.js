@@ -1,127 +1,126 @@
-import React, { use, useEffect, useState } from 'react';
-import './Landing.css';
-import Modal from '../Modal/Modal';
+// src/components/Landing.jsx
+import React, { useEffect, useState } from "react";
+import Modal from "../Modal/Modal";
+import "./Landing.css";
+import PdfManager from "../pdf/PdfManager";
 
 const Landing = () => {
-
-  // the states i will be using inside the program
+  // tasks loaded from localStorage (simple; no PDF stripping)
   const [tasks, setTasks] = useState(() => {
-    // check whether the task already exists in the localstorage if yes get it if not keep it empty
-    const storedTasks = localStorage.getItem("studyPlannerTasks");
-    return storedTasks ? JSON.parse(storedTasks): [];
+    const stored = localStorage.getItem("studyPlannerTasks");
+    if (!stored) return [];
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return [];
+    }
   });
+
+  // modal + form states
   const [openModal, setOpenModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [priority, setPriority] = useState("");
 
-  //update the task whenever it changes  // useEffect( {what to do}, [when to do])
+  // persist tasks to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('studyPlannerTasks', JSON.stringify(tasks));
-  },[tasks]);
+    try {
+      localStorage.setItem("studyPlannerTasks", JSON.stringify(tasks));
+    } catch {
+      // ignore
+    }
+  }, [tasks]);
 
-  // the attributes state that will be inside the tasks
-  const [title, setTitle] = useState('');
-  const [date,setDate] = useState('');
-  const [priority, setPriority] = useState('');
-  const [file, setFile] = useState(null);
- 
+  const openAddModal = () => {
+    setEditingId(null);
+    setTitle("");
+    setDate("");
+    setPriority("");
+    setOpenModal(true);
+  };
 
-  //function to handle the input of files and verifying that the user have input a file
-  const handleFileChange = (e) => {
-    const selected = e.target.files[0] && e.target.files[0];
-    if(!selected)
-    {
-      setFile(null);
+  const openEditModal = (task) => {
+    setEditingId(task.id);
+    setTitle(task.title);
+    setDate(task.date || "");
+    setPriority(task.priority || "");
+    setOpenModal(true);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    if (!title.trim()) {
+      alert("Please enter a title!");
+      return;
+    }
+    if (!priority) {
+      alert("Please select a priority!");
       return;
     }
 
-    setFile(selected);
-  }
-
-  // function to add a new task with all the attributes
-  const handleAddTask = (e) => {
-    e.preventDefault();
-
-    if(!title.trim()) { alert("title enter karo!"); return; }  // to check the presence of title
-    if(!priority) { alert("select a priority!"); return; }  // to check the presence of title
-
-    // the file is temoparily stored inside the local host url for viewing
-    let fileMeta = null;
-    if(file)
-    {
-      const url = URL.createObjectURL(file);
-      fileMeta = {
-        name: file.name, url,
-        size: file.size,
-        type: file.type
+    if (editingId === null) {
+      const newTask = {
+        id: Date.now(),
+        title: title.trim(),
+        date: date || null,
+        priority,
+        completed: false,
       };
+      setTasks((prev) => [newTask, ...prev]);
+    } else {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === editingId
+            ? { ...t, title: title.trim(), date: date || null, priority }
+            : t
+        )
+      );
     }
 
-    const newTask = {
-      id : Date.now(), 
-      title : title.trim(),
-      date : date || null,
-      priority,
-      file: fileMeta
-    }
-
-    setTasks((prev) => [newTask, ...prev]);
-
-    //used to clear the datas after a task is entered
-    setTitle('');
-    setDate('');
-    setPriority('');
-    setFile(null);
+    setEditingId(null);
+    setTitle("");
+    setDate("");
+    setPriority("");
     setOpenModal(false);
-  }
+  };
 
-  //used to clear the datas after closing the model midway
-  const handleCloseModal = () => {
-    setTitle('');
-    setDate('');
-    setPriority('');
-    setFile(null);
-    
-    setOpenModal(false);
+  const handleDelete = (id) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    if (!window.confirm(`Delete task "${task.title}"? This cannot be undone.`))
+      return;
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const toggleComplete = (id) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
   };
 
   return (
     <div className="home">
+      <PdfManager />
       <h1 className="title">Study Planner</h1>
-      <p className="subtitle">
-        Organize your tasks, upload notes, and track your daily progress.
-      </p>
+      <p className="subtitle">Organize your tasks, upload notes, and track your daily progress.</p>
 
       <div className="buttons">
-        <button className="btn" onClick={() => setOpenModal(true)}>
-          Add New Task
-        </button>
-
-        <button className="btn">View Tasks</button>
+        <button className="btn" onClick={openAddModal}>Add New Task</button>
+        <button className="btn secondary">View Tasks</button>
       </div>
-      
-      {/* this is used to display a popup for adding a task*/}
-      <Modal isOpen={openModal} onClose={() => setOpenModal(false)}>
-        <h2>Add New Task</h2>
 
-        <form onSubmit={handleAddTask} className='form-style'>
+      <Modal isOpen={openModal} onClose={() => setOpenModal(false)}>
+        <h2>{editingId === null ? "Add New Task" : "Edit Task"}</h2>
+
+        <form onSubmit={handleSave} className="form-style">
           <input
-            type='text'
+            type="text"
             placeholder="Task Name"
-            className='input'
+            className="input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <input
-            type='date'
-            className='input'
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-          <input
-            type='file'
-            className='file-upload'
-            accept='application/pdf'
-            onChange={handleFileChange}
-          />
+
+          <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
 
           <select className="form-select" value={priority} onChange={(e) => setPriority(e.target.value)}>
             <option value="">Select from below</option>
@@ -130,39 +129,56 @@ const Landing = () => {
             <option value="Low">Low</option>
           </select>
 
-          <button 
-            className="btn" 
-            onClick={handleCloseModal}
-          >
-            Cancel
-          </button>
-          <button className="btn">Add task</button>
-        </form>        
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setEditingId(null);
+                setTitle("");
+                setDate("");
+                setPriority("");
+                setOpenModal(false);
+              }}
+            >
+              Cancel
+            </button>
+
+            <button type="submit" className="btn">
+              {editingId === null ? "Add Task" : "Save Changes"}
+            </button>
+          </div>
+        </form>
       </Modal>
 
       <div className="preview-box">
         <h3>Tasks Left</h3>
 
-        {/* map is used to iterate through the elements inside the array*/}
-        {tasks.map((t) => (
-          <div className="task" key={t.id}> 
-            <div className="dot"></div>
-            <div>{t.title}</div>
-            <div>{t.date}</div>
-            <div>{t.priority}</div>
+        {tasks.length === 0 ? (
+          <p>No tasks yet.</p>
+        ) : (
+          tasks.map((t) => (
+            <div className="task" key={t.id}>
+              <div className={`dot ${t.priority === "High" ? "p-high" : t.priority === "Medium" ? "p-medium" : "p-low"}`} title={`Priority: ${t.priority}`} />
+              <div style={{ flex: 1 }}>
+                <div className="title">{t.title}</div>
+                <div className="meta">
+                  {t.date ? `Due: ${t.date} • ` : ""}
+                  {t.priority} priority
+                </div>
+              </div>
 
-            {t.file && (
-              <a href={t.file.url} target="_blank" rel="noopener noreferrer">
-                {t.file.name}
-              </a>
-            )}
-          </div>
-                   
-        ))}
-
+              <div className="actions">
+                <button className="small-btn" onClick={() => openEditModal(t)}>Edit</button>
+                <button className="small-btn" onClick={() => handleDelete(t.id)}>Delete</button>
+                <button className="small-btn" onClick={() => toggleComplete(t.id)}>{t.completed ? "Undo" : "Done"}</button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default Landing;

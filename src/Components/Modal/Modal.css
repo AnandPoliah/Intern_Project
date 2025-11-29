@@ -1,20 +1,53 @@
+/* Overlay + centered modal */
 .modal-overlay {
-  width: 100%;
-  height: 100%;
   position: fixed;
-  background: rgba(0,0,0,0.5);
-  top: 0;
-  left: 0;
+  inset: 0;
+  background: rgba(2,6,23,0.55);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn .14s ease;
 }
 
+/* Modal card */
 .modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  width: 350px;
-  max-width: 90%;
+  width: 420px;
+  max-width: calc(100% - 32px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,250,0.98));
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 18px 50px rgba(2,6,23,0.24);
+  transform-origin: center;
+  animation: popIn .16s ease;
+  border: 1px solid rgba(15,23,42,0.04);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+/* Modal heading inside */
+.modal-content h2 {
+  margin: 6px 0 8px 0;
+  font-size: 1.2rem;
+  text-align: center;
+  color: #0f172a;
+  
+}
+
+/* subtle focus outlines for accessibility */
+.modal-content :focus {
+  outline: 3px solid rgba(37,99,235,0.12);
+  outline-offset: 2px;
+}
+
+/* simple animations */
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-8px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
