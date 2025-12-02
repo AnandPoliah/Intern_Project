@@ -1,184 +1,174 @@
-// src/components/Landing.jsx
 import React, { useEffect, useState } from "react";
 import Modal from "../Modal/Modal";
 import "./Landing.css";
 import PdfManager from "../pdf/PdfManager";
 
-const Landing = () => {
-  // tasks loaded from localStorage (simple; no PDF stripping)
-  const [tasks, setTasks] = useState(() => {
-    const stored = localStorage.getItem("studyPlannerTasks");
-    if (!stored) return [];
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return [];
-    }
+const P_VAL = { High: 3, Medium: 2, Low: 1 };
+const S_VAL = { Pending: 3, Ongoing: 2, Completed: 1 };
+
+const INIT_FORM = {
+  id: null,
+  title: "",
+  date: "",
+  priority: "Medium",
+  status: "Pending",
+};
+
+export default function Landing() {
+  const [tasks, setTasks] = useState(() =>
+    JSON.parse(localStorage.getItem("tasks") || "[]")
+  );
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(INIT_FORM);
+  const [filters, setFilters] = useState({
+    status: "All",
+    priority: "All",
+    search: "",
   });
 
-  // modal + form states
-  const [openModal, setOpenModal] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [priority, setPriority] = useState("");
-
-  // persist tasks to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem("studyPlannerTasks", JSON.stringify(tasks));
-    } catch {
-      // ignore
-    }
-  }, [tasks]);
-
-  const openAddModal = () => {
-    setEditingId(null);
-    setTitle("");
-    setDate("");
-    setPriority("");
-    setOpenModal(true);
-  };
-
-  const openEditModal = (task) => {
-    setEditingId(task.id);
-    setTitle(task.title);
-    setDate(task.date || "");
-    setPriority(task.priority || "");
-    setOpenModal(true);
-  };
+  useEffect(
+    () => localStorage.setItem("tasks", JSON.stringify(tasks)),
+    [tasks]
+  );
 
   const handleSave = (e) => {
     e.preventDefault();
-    if (!title.trim()) {
-      alert("Please enter a title!");
-      return;
-    }
-    if (!priority) {
-      alert("Please select a priority!");
-      return;
-    }
+    if (!form.title.trim()) return alert("Title required");
 
-    if (editingId === null) {
-      const newTask = {
-        id: Date.now(),
-        title: title.trim(),
-        date: date || null,
-        priority,
-        completed: false,
-      };
-      setTasks((prev) => [newTask, ...prev]);
-    } else {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === editingId
-            ? { ...t, title: title.trim(), date: date || null, priority }
-            : t
-        )
-      );
-    }
-
-    setEditingId(null);
-    setTitle("");
-    setDate("");
-    setPriority("");
-    setOpenModal(false);
+    setTasks((prev) =>
+      form.id
+        ? prev.map((t) => (t.id === form.id ? form : t))
+        : [{ ...form, id: Date.now() }, ...prev]
+    );
+    setOpen(false);
   };
 
   const handleDelete = (id) => {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    if (!window.confirm(`Delete task "${task.title}"? This cannot be undone.`))
-      return;
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    if (window.confirm("Delete task?"))
+      setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const toggleComplete = (id) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
+  const openModal = (task = INIT_FORM) => {
+    setForm(task);
+    setOpen(true);
   };
+
+  const filtered = tasks
+    .filter(
+      (t) =>
+        (filters.status === "All" || t.status === filters.status) &&
+        (filters.priority === "All" || t.priority === filters.priority) &&
+        t.title.toLowerCase().includes(filters.search.toLowerCase())
+    )
+    .sort(
+      (a, b) =>
+        S_VAL[b.status] - S_VAL[a.status] ||
+        P_VAL[b.priority] - P_VAL[a.priority]
+    );
 
   return (
-    <div className="home">
+    <div className="app">
       <PdfManager />
-      <h1 className="title">Study Planner</h1>
-      <p className="subtitle">Organize your tasks, upload notes, and track your daily progress.</p>
-
-      <div className="buttons">
-        <button className="btn" onClick={openAddModal}>Add New Task</button>
-        <button className="btn secondary">View Tasks</button>
-      </div>
-
-      <Modal isOpen={openModal} onClose={() => setOpenModal(false)}>
-        <h2>{editingId === null ? "Add New Task" : "Edit Task"}</h2>
-
-        <form onSubmit={handleSave} className="form-style">
+      <header>
+        <h1>Study Planner</h1>
+        <div className="controls">
           <input
-            type="text"
-            placeholder="Task Name"
-            className="input"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Search..."
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           />
-
-          <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
-
-          <select className="form-select" value={priority} onChange={(e) => setPriority(e.target.value)}>
-            <option value="">Select from below</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
+          <select
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+          >
+            <option value="All">All Status</option>
+            <option>Pending</option>
+            <option>Ongoing</option>
+            <option>Completed</option>
           </select>
+          <select
+            onChange={(e) =>
+              setFilters({ ...filters, priority: e.target.value })
+            }
+          >
+            <option value="All">All Priority</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+          <button className="btn-primary" onClick={() => openModal()}>
+            + Add
+          </button>
+        </div>
+      </header>
 
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => {
-                setEditingId(null);
-                setTitle("");
-                setDate("");
-                setPriority("");
-                setOpenModal(false);
-              }}
-            >
-              Cancel
-            </button>
-
-            <button type="submit" className="btn">
-              {editingId === null ? "Add Task" : "Save Changes"}
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      <div className="preview-box">
-        <h3>Tasks Left</h3>
-
-        {tasks.length === 0 ? (
-          <p>No tasks yet.</p>
-        ) : (
-          tasks.map((t) => (
-            <div className="task" key={t.id}>
-              <div className={`dot ${t.priority === "High" ? "p-high" : t.priority === "Medium" ? "p-medium" : "p-low"}`} title={`Priority: ${t.priority}`} />
-              <div style={{ flex: 1 }}>
-                <div className="title">{t.title}</div>
-                <div className="meta">
-                  {t.date ? `Due: ${t.date} • ` : ""}
-                  {t.priority} priority
-                </div>
-              </div>
-
-              <div className="actions">
-                <button className="small-btn" onClick={() => openEditModal(t)}>Edit</button>
-                <button className="small-btn" onClick={() => handleDelete(t.id)}>Delete</button>
-                <button className="small-btn" onClick={() => toggleComplete(t.id)}>{t.completed ? "Undo" : "Done"}</button>
+      <div className="grid">
+        {filtered.map((t) => (
+          <div key={t.id} className={`card ${t.status.toLowerCase()}`}>
+            <div className="top">
+              <span className={`tag ${t.priority.toLowerCase()}`}>
+                {t.priority}
+              </span>
+              <div>
+                <button onClick={() => openModal(t)}>✎</button>
+                <button onClick={() => handleDelete(t.id)}>×</button>
               </div>
             </div>
-          ))
-        )}
+            <h3>{t.title}</h3>
+            <div className="bot">
+              <small>{t.date || "No Date"}</small>
+              <select
+                value={t.status}
+                onChange={(e) =>
+                  setTasks(
+                    tasks.map((x) =>
+                      x.id === t.id ? { ...x, status: e.target.value } : x
+                    )
+                  )
+                }
+              >
+                <option>Pending</option>
+                <option>Ongoing</option>
+                <option>Completed</option>
+              </select>
+            </div>
+          </div>
+        ))}
       </div>
+
+      <Modal isOpen={open} onClose={() => setOpen(false)}>
+        <h2>{form.id ? "Edit Task" : "New Task"}</h2>
+        <form onSubmit={handleSave} className="modal-form">
+          <input
+            autoFocus
+            placeholder="Task Title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+          <div className="row">
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+            />
+            <select
+              value={form.priority}
+              onChange={(e) => setForm({ ...form, priority: e.target.value })}
+            >
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+          </div>
+          <select
+            value={form.status}
+            onChange={(e) => setForm({ ...form, status: e.target.value })}
+          >
+            <option>Pending</option>
+            <option>Ongoing</option>
+            <option>Completed</option>
+          </select>
+          <button className="btn-primary">Save</button>
+        </form>
+      </Modal>
     </div>
   );
-};
-
-export default Landing;
+}

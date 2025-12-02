@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StudyHub Task Manager</title>
+    <link rel="stylesheet" href="style.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    </script>
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <div class="brand">
+        <span class="icon">📚</span>
+        <h1>StudyHub</h1>
+      </div>
+      <div class="nav-right">
+        <button
+          id="themeToggle"
+          class="btn-icon"
+          onclick="app.toggleTheme()"
+          title="Toggle Theme"
+        >
+          🌙
+        </button>
+        <button class="btn-primary" onclick="reporter.generate()">
+          📊 Generate Team Report
+        </button>
+
+        <div class="user-profile">
+          <select id="currentUser" onchange="app.switchUser()">
+            <option value="Intern_1">Intern 1</option>
+            <option value="Intern_2">Intern 2</option>
+          </select>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="toolbar">
+        <div class="stats">
+          <h2>My Tasks</h2>
+          <span class="subtitle">Manage your reading and deadlines</span>
+        </div>
+        <button class="btn-primary" onclick="ui.toggleModal(true)">
+          <span class="plus">+</span> New Task
+        </button>
+      </div>
+
+      <div id="taskGrid" class="grid"></div>
+    </main>
+
+    <div id="taskModal" class="modal hidden">
+      <div class="modal-content bounce-in">
+        <div class="modal-header">
+          <h3>Create New Task</h3>
+          <span class="close-btn" onclick="ui.toggleModal(false)">&times;</span>
+        </div>
+        <form id="taskForm">
+          <div class="form-group">
+            <label>Task Title</label>
+            <input
+              type="text"
+              id="taskTitle"
+              placeholder="Ex: React Documentation..."
+              required
+            />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Priority</label>
+              <select id="taskPriority">
+                <option value="High">🔥 High</option>
+                <option value="Medium" selected>⚡ Medium</option>
+                <option value="Low">🌱 Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Due Date</label>
+              <input type="date" id="taskDate" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Attach PDF (Optional)</label>
+            <input
+              type="file"
+              id="pdfFile"
+              accept="application/pdf"
+              class="file-input"
+            />
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn-text"
+              onclick="ui.toggleModal(false)"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn-primary">Save Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="pdfViewerModal" class="modal hidden">
+      <div class="modal-content viewer-content bounce-in">
+        <div class="viewer-header">
+          <h4 id="docName">Document</h4>
+          <button class="btn-secondary" onclick="ui.closeViewer()">
+            Close & Save
+          </button>
+        </div>
+        <div class="viewer-body">
+          <div class="pdf-controls">
+            <button onclick="viewer.changePage(-1)">❮ Prev</button>
+            <span
+              >Page <b id="pgNum">--</b> / <span id="pgTotal">--</span></span
+            >
+            <button onclick="viewer.changePage(1)">Next ❯</button>
+          </div>
+          <div class="canvas-scroll">
+            <canvas id="pdfCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="summaryModal" class="modal hidden">
+      <div class="modal-content bounce-in">
+        <div
+          class="modal-header"
+          style="
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+          "
+        >
+          <h3>📊 Team Status Report</h3>
+
+          <span
+            class="close-btn"
+            onclick="ui.closeReport()"
+            style="color: white"
+            >&times;</span
+          >
+        </div>
+
+        <div class="summary-body" style="padding: 20px">
+          <div
+            id="aiLoading"
+            class="hidden"
+            style="text-align: center; padding: 20px"
+          ></div>
+          <div id="aiResult"></div>
+        </div>
+
+        <div class="modal-actions" style="padding: 0 20px 20px">
+          <button class="btn-primary" onclick="ui.closeReport()">
+            Close Report
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

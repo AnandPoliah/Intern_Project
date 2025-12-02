@@ -1,115 +1,141 @@
-// src/components/pdf/PdfViewer.jsx
-import React, { useEffect, useRef, useState } from "react";
-import pdfdb from "../../utils/pdfDB";
-import "./pdf.css";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import pdfDB from "../../utils/pdfDB";
 
-export default function PdfViewer({ id, onClose }) {
-  const [meta, setMeta] = useState(null);
-  const [doc, setDoc] = useState(null);
-  const [page, setPage] = useState(1);
-  const container = useRef(null);
-  const canvases = useRef([]);
-  const obs = useRef(null);
-  const lock = useRef(false);
-  const objUrl = useRef(null);
-  const saveT = useRef(null);
-
-  const save = (p) => {
-    if (saveT.current) clearTimeout(saveT.current);
-    saveT.current = setTimeout(() => pdfdb.updateProgress(id, p).catch(()=>{}), 200);
-  };
+// Responsible for "Lazy Loading": Only renders pixels when close to the screen.
+const PdfPage = ({ pdf, num, container }) => {
+  const ref = useRef(null); // Reference to the <canvas> element
+  const [rendered, setRendered] = useState(false); // Prevents re-rendering if already drawn
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      await pdfdb.init();
-      const metas = await pdfdb.getAllMeta();
-      const m = metas.find(x=>x.id===id) || null;
-      setMeta(m);
-      const blob = await pdfdb.getFile(id);
-      if (!blob) return alert("File missing");
-      objUrl.current = URL.createObjectURL(blob);
-      const pdfjs = window.pdfjsLib;
-      if (!pdfjs) return alert("Add pdf.js script");
-      const loading = pdfjs.getDocument({url: objUrl.current});
-      const P = await loading.promise;
-      if (cancelled) { try{loading.destroy()}catch{}; return; }
-      setDoc(P);
+    // If already rendered or DOM not ready, skip
+    if (rendered || !ref.current) return;
 
-      const sc = 1.2;
-      const wrap = container.current;
-      wrap.innerHTML = "";
-      canvases.current = [];
-      const renders = [];
-      for (let i=1;i<=P.numPages;i++){
-        const w = document.createElement("div");
-        w.className="pdf-page-wrapper"; w.dataset.page=i;
-        const c = document.createElement("canvas"); c.className="pdf-canvas";
-        const lab = document.createElement("div"); lab.className="pdf-page-label"; lab.textContent=`Page ${i}`;
-        w.appendChild(c); w.appendChild(lab); wrap.appendChild(w);
-        canvases.current.push({page:i,canvas:c,wrap:w});
-        renders.push((async (n,cn) => {
-          const p = await P.getPage(n);
-          const vp = p.getViewport({scale:sc});
-          cn.width = vp.width; cn.height = vp.height;
-          cn.style.width = Math.min(vp.width, wrap.clientWidth-40)+"px";
-          await p.render({canvasContext:cn.getContext("2d"),viewport:vp}).promise;
-        })(i,c));
-      }
-      await Promise.all(renders);
-      setupObserver();
-      if (m && m.lastPage) {
-        lock.current = true;
-        const t = wrap.querySelector(`[data-page="${m.lastPage}"]`);
-        if (t) t.scrollIntoView({behavior:"auto",block:"center"});
-        setPage(m.lastPage);
-        setTimeout(()=>{ lock.current=false; },120);
-      }
-    })();
+    // Observer 1: The "Renderer".
+    // Triggers when page is within 300px of the viewport (rootMargin).
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          // 1. Fetch the specific page data from PDF.js
+          pdf.getPage(num).then(async (p) => {
+            // 2. Calculate dimensions (Scale 1.5 = good quality)
+            const vp = p.getViewport({ scale: 1.5 });
+            ref.current.width = vp.width;
+            ref.current.height = vp.height;
 
-    return () => {
-      cancelled = true;
-      if (obs.current) try{obs.current.disconnect()}catch{}
-      if (objUrl.current) try{URL.revokeObjectURL(objUrl.current)}catch{}
-      canvases.current.forEach(({canvas})=>{ try{canvas.getContext("2d")?.clearRect(0,0,canvas.width,canvas.height)}catch{} });
-      canvases.current=[];
-      if (saveT.current) clearTimeout(saveT.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+            // 3. Draw onto the HTML Canvas
+            await p.render({
+              canvasContext: ref.current.getContext("2d"),
+              viewport: vp,
+            }).promise;
+            setRendered(true); // Mark as done so we don't redraw
+          });
+          obs.disconnect(); // Stop observing this page to save memory
+        }
+      },
+      { root: container.current, rootMargin: "300px" }
+    );
 
-  const setupObserver = () => {
-    if (!container.current) return;
-    if (obs.current) try{obs.current.disconnect()}catch{};
-    obs.current = new IntersectionObserver(entries=>{
-      if (lock.current) return;
-      let best=null;
-      for (const e of entries) if (!best || e.intersectionRatio>best.intersectionRatio) best=e;
-      if (best && best.isIntersecting){
-        const num = Number(best.target.dataset.page);
-        if (num && num!==page){ setPage(num); save(num); }
-      }
-    }, {root: container.current, threshold: [0.5]});
-    container.current.querySelectorAll(".pdf-page-wrapper").forEach(w=>obs.current.observe(w));
-  };
-
-  const goto = (n) => {
-    const tgt = container.current.querySelector(`[data-page="${n}"]`);
-    if (tgt){ lock.current = true; tgt.scrollIntoView({behavior:"smooth",block:"center"}); setPage(n); save(n); setTimeout(()=>lock.current=false,300); }
-  };
+    obs.observe(ref.current);
+    return () => obs.disconnect(); // Cleanup
+  }, [rendered, container, num, pdf]);
 
   return (
-    <div className="pdf-viewer">
-      <div className="pdf-viewer-toolbar">
-        <div className="pdf-meta"><strong>{meta?.name||"Document"}</strong><div className="muted">{meta?.size}</div></div>
-        <div className="pdf-controls">
-          <button onClick={()=>goto(Math.max(1,page-1))} className="btn small">Prev</button>
-          <span className="page-indicator">Page {page}{doc?` / ${doc.numPages}`:""}</span>
-          <button onClick={()=>goto((doc&&page<doc.numPages)?page+1:page)} className="btn small">Next</button>
-          <button onClick={()=>onClose?.()} className="btn small">Close</button>
-        </div>
+    // ID used by parent tracker. minHeight prevents scrollbar jumping before load.
+    <div
+      id={num}
+      className="page-wrapper page-track"
+      style={{ minHeight: rendered ? "auto" : "800px" }}
+    >
+      <canvas ref={ref} className="the-canvas" />
+      {!rendered && <div className="loading-txt">Page {num}</div>}
+    </div>
+  );
+};
+
+// --- PARENT COMPONENT: Main Viewer ---
+// Responsible for Loading the Doc and Tracking the Current Page number.
+export default function PdfViewer({ id, onClose }) {
+  const [pdf, setPdf] = useState(null);
+  const [curr, setCurr] = useState(1);
+  const scrollRef = useRef(null); // Points to the scrollable container div
+
+  // EFFECT 1: Load PDF & Restore Progress
+  useEffect(() => {
+    (async () => {
+      // Fetch binary blob from IndexedDB
+      const blob = await pdfDB.getFileBlob(id);
+      // Initialize PDF.js
+      const doc = await window.pdfjsLib.getDocument(URL.createObjectURL(blob))
+        .promise;
+      setPdf(doc);
+
+      // Check DB for last read page and auto-scroll there
+      const meta = (await pdfDB.getFiles()).find((f) => f.id === id);
+      if (meta.page)
+        setTimeout(
+          () => document.getElementById(meta.page)?.scrollIntoView(),
+          10
+        );
+    })();
+  }, [id]);
+
+  // EFFECT 2: The "Page Tracker"
+  useEffect(() => {
+    if (!pdf || !scrollRef.current) return;
+
+    // Observer 2: The "Tracker".
+    // Watches ALL pages to see which one is currently most visible.
+    const obs = new IntersectionObserver(
+      (entries) => {
+        // 'reduce' finds the page with the highest visibility ratio (most on screen)
+        const best = entries.reduce((a, b) =>
+          b.intersectionRatio > a.intersectionRatio ? b : a
+        );
+
+        // Only update if the page is significantly visible (>40%)
+        if (best.intersectionRatio > 0.4) {
+          const p = Number(best.target.id);
+          setCurr(p); // Update UI counter
+          pdfDB.updatePage(id, p); // Save progress to DB
+        }
+      },
+      { root: scrollRef.current, threshold: 0.5 }
+    ); // Check when 50% visible
+
+    // Attach this observer to every page div
+    document.querySelectorAll(".page-track").forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, [pdf, id]);
+
+  // Helper: Create array of numbers [1, 2, 3... N]
+  const pages = useMemo(
+    () => (pdf ? Array.from({ length: pdf.numPages }, (_, i) => i + 1) : []),
+    [pdf]
+  );
+
+  return (
+    <div className="viewer-layout">
+      <div className="viewer-bar">
+        <button onClick={onClose} className="btn-back">
+          ← Back
+        </button>
+        <span className="pg-count">
+          Page {curr} / {pdf?.numPages || "-"}
+        </span>
+        <div style={{ width: 50 }} />
       </div>
-      <div ref={container} className="pdf-scroll-container" style={{overflowY:"auto",maxHeight:"72vh",padding:12}}/>
+
+      {/* Scrollable Area */}
+      <div className="viewer-scroll" ref={scrollRef}>
+        {!pdf ? (
+          <div className="loading-screen">Loading PDF...</div>
+        ) : (
+          // Render list of Child Components
+          pages.map((n) => (
+            <PdfPage key={n} pdf={pdf} num={n} container={scrollRef} />
+          ))
+        )}
+      </div>
     </div>
   );
 }

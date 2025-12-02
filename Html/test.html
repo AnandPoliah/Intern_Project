@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini Model Finder & Tester</title>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --bg: #f8fafc;
+        --text: #1e293b;
+        --card: #ffffff;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        justify-content: center;
+        padding: 40px 20px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 650px;
+      }
+      .card {
+        background: var(--card);
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      h2 {
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      p {
+        color: #64748b;
+        line-height: 1.5;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 14px;
+      }
+      button {
+        padding: 12px 24px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .model-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .model-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+      }
+      .model-item:last-child {
+        border-bottom: none;
+      }
+      .model-item:hover {
+        background: #f1f5f9;
+      }
+      .model-name {
+        font-family: monospace;
+        font-weight: bold;
+        color: #334155;
+      }
+
+      .btn-test {
+        padding: 6px 12px;
+        font-size: 12px;
+        background: #10b981;
+      }
+      .btn-test:hover {
+        background: #059669;
+      }
+
+      #logArea {
+        background: #1e293b;
+        color: #10b981;
+        padding: 20px;
+        border-radius: 12px;
+        font-family: "Consolas", monospace;
+        font-size: 13px;
+        height: 250px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        display: none;
+      }
+      .log-error {
+        color: #ef4444;
+      }
+      .log-warn {
+        color: #f59e0b;
+      }
+      .log-info {
+        color: #60a5fa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h2>🔎 Gemini Model Finder</h2>
+        <p>
+          Your previous errors (404) happened because the model name was wrong.
+          This tool lists the <strong>exact names</strong> your API key
+          supports.
+        </p>
+
+        <div class="input-group">
+          <input
+            type="text"
+            id="apiKey"
+            placeholder="Paste your AIza... Key here"
+          />
+          <button id="btnScan" onclick="fetchModels()">Scan for Models</button>
+        </div>
+      </div>
+
+      <div id="resultsCard" class="card" style="display: none">
+        <h3>✅ Valid Models Found</h3>
+        <p>
+          Click "Test" on any model. If it works, copy the
+          <strong>Model Name</strong> into your <code>app.js</code>.
+        </p>
+        <ul id="modelList" class="model-list"></ul>
+      </div>
+
+      <div id="logArea"></div>
+    </div>
+
+    <script>
+      const logArea = document.getElementById("logArea");
+
+      function log(msg, type = "info") {
+        logArea.style.display = "block";
+        const div = document.createElement("div");
+        div.textContent = `> ${msg}`;
+        div.className = `log-${type}`;
+        logArea.appendChild(div);
+        logArea.scrollTop = logArea.scrollHeight;
+      }
+
+      async function fetchModels() {
+        const key = document.getElementById("apiKey").value.trim();
+        if (!key) return alert("Please enter an API Key");
+
+        const btn = document.getElementById("btnScan");
+        const list = document.getElementById("modelList");
+        const resCard = document.getElementById("resultsCard");
+
+        // Reset
+        list.innerHTML = "";
+        logArea.innerHTML = "";
+        resCard.style.display = "none";
+        btn.disabled = true;
+        btn.innerText = "Scanning...";
+
+        try {
+          log("Connecting to Google API...", "info");
+
+          // 1. Get List of Models
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`
+          );
+
+          if (!response.ok) {
+            if (response.status === 400)
+              throw new Error("Invalid API Key format.");
+            if (response.status === 403)
+              throw new Error(
+                "Permission Denied (Check your Google Cloud Console)."
+              );
+            throw new Error(`API Error: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // 2. Filter for "generateContent" models only
+          const usableModels = data.models.filter((m) =>
+            m.supportedGenerationMethods.includes("generateContent")
+          );
+
+          log(
+            `Successfully connected! Found ${usableModels.length} text-generation models.`,
+            "success"
+          );
+
+          if (usableModels.length === 0) {
+            log("No text generation models found for this key.", "warn");
+            return;
+          }
+
+          resCard.style.display = "block";
+
+          // 3. Render List
+          usableModels.forEach((model) => {
+            const cleanName = model.name.replace("models/", ""); // remove prefix for display
+
+            const li = document.createElement("li");
+            li.className = "model-item";
+            li.innerHTML = `
+                    <span class="model-name">${cleanName}</span>
+                    <button class="btn-test" onclick="testSpecificModel('${cleanName}')">Test This</button>
+                `;
+            list.appendChild(li);
+          });
+        } catch (err) {
+          log(err.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "Scan for Models";
+        }
+      }
+
+      async function testSpecificModel(modelName) {
+        const key = document.getElementById("apiKey").value.trim();
+        log(`Testing model: ${modelName}...`, "info");
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
+
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                { parts: [{ text: "Say 'Hello' if you are working." }] },
+              ],
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const reply =
+              data.candidates?.[0]?.content?.parts?.[0]?.text ||
+              "Empty response";
+            log(`✅ SUCCESS! ${modelName} is working.`, "success");
+            log(`🤖 AI Reply: ${reply}`, "info");
+            alert(`SUCCESS!\n\nUse this model in app.js:\n\n${modelName}`);
+          } else {
+            log(`❌ FAILED: ${modelName} returned ${response.status}`, "error");
+          }
+        } catch (e) {
+          log(`Network Error: ${e.message}`, "error");
+        }
+      }
+    </script>
+  </body>
+</html>

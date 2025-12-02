@@ -1,74 +1,84 @@
-// src/components/pdf/PdfManager.jsx
 import React, { useEffect, useState } from "react";
-import pdfdb from "../../utils/pdfDB";
-import PdfUpload from "./PdfUpload";
+import pdfDB from "../../utils/pdfDB";
 import PdfViewer from "./PdfViewer";
 import "./pdf.css";
 
-
-/**
- * PdfManager: initializes DB and shows upload/list + viewer.
- */
 export default function PdfManager() {
-  const [ready, setReady] = useState(false);
   const [docs, setDocs] = useState([]);
-  const [openId, setOpenId] = useState(null);
+  const [viewId, setViewId] = useState(null);
+
+  const loadDocs = () => pdfDB.getFiles().then(setDocs);
 
   useEffect(() => {
-    (async () => {
-      await pdfdb.init();
-      setReady(true);
-      refreshList();
-    })();
-  }, []);
+    loadDocs();
+  }, [viewId]);
 
-  const refreshList = async () => {
-    const all = await pdfdb.getAllMeta();
-    setDocs(all);
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === "application/pdf") {
+      await pdfDB.addFile(file);
+      loadDocs();
+    }
+    e.target.value = null;
   };
 
-  const onUpload = async (file) => {
-    await pdfdb.saveFile(file);
-    await refreshList();
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    if (window.confirm("Delete this document?")) {
+      await pdfDB.deleteFile(id);
+      loadDocs();
+    }
   };
 
-  const onDelete = async (id) => {
-    if (!window.confirm("Delete document?")) return;
-    await pdfdb.deleteFile(id);
-    if (openId === id) setOpenId(null);
-    await refreshList();
-  };
+  // If viewing, render the viewer inside the same box
+  if (viewId) {
+    return (
+      <div className="pdf-box viewer-mode">
+        <PdfViewer id={viewId} onClose={() => setViewId(null)} />
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h2>PDF Manager</h2>
-      {!ready ? <p>Loading...</p> : null}
+    <div className="pdf-box">
+      <div className="pdf-header">
+        <h3>My Library</h3>
+        <label className="btn-upload">
+          + Upload
+          <input
+            type="file"
+            hidden
+            accept="application/pdf"
+            onChange={handleUpload}
+          />
+        </label>
+      </div>
 
-      <PdfUpload onUpload={onUpload} />
-
-      <div style={{ marginTop: 12 }}>
+      <div className="pdf-list">
         {docs.length === 0 ? (
-          <p>No PDFs uploaded yet.</p>
+          <div className="empty-msg">
+            No documents yet. <br /> Upload a PDF to start reading.
+          </div>
         ) : (
           docs.map((d) => (
-            <div key={d.id} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700 }}>{d.name}</div>
-                <div style={{ fontSize: 12, color: "#666" }}>{d.size} • Page {d.lastPage}</div>
+            <div key={d.id} className="pdf-row" onClick={() => setViewId(d.id)}>
+              <span className="icon">📄</span>
+              <div className="info">
+                <div className="name">{d.name}</div>
+                <div className="meta">
+                  {d.size} • Pg {d.page}
+                </div>
               </div>
-
-              <button onClick={() => setOpenId(d.id)}>Open</button>
-              <button onClick={() => onDelete(d.id)} style={{ color: "red" }}>Delete</button>
+              <button
+                className="btn-del"
+                onClick={(e) => handleDelete(e, d.id)}
+              >
+                ×
+              </button>
             </div>
           ))
         )}
       </div>
-
-      {openId && (
-        <div style={{ marginTop: 18 }}>
-          <PdfViewer id={openId} onClose={() => setOpenId(null)} />
-        </div>
-      )}
     </div>
   );
 }
