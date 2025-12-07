@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StudyHub Task Manager</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
       pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -14,95 +17,274 @@
   </head>
 
   <body>
-    <nav class="navbar">
-      <div class="brand">
-        <span class="icon">📚</span>
-        <h1>StudyHub</h1>
-      </div>
-      <div class="nav-right">
-        <button
-          id="themeToggle"
-          class="btn-icon"
-          onclick="app.toggleTheme()"
-          title="Toggle Theme"
+    <section id="authView" class="auth-container">
+      <div id="loginCard" class="auth-card bounce-in">
+        <div
+          class="brand-large"
+          onclick="location.reload()"
+          title="Refresh App"
         >
-          🌙
-        </button>
-        <button class="btn-primary" onclick="reporter.generate()">
-          📊 Generate Team Report
-        </button>
-
-        <div class="user-profile">
-          <select id="currentUser" onchange="app.switchUser()">
-            <option value="Intern_1">Intern 1</option>
-            <option value="Intern_2">Intern 2</option>
-          </select>
+          <span class="material-icons-round icon-large">school</span>
+          <h1>StudyHub</h1>
         </div>
+        <p class="auth-subtitle">Login to your workspace</p>
+        <form onsubmit="app.login(event)">
+          <div class="form-group">
+            <label class="input-label">Username</label>
+            <div class="input-wrapper">
+              <span class="material-icons-round input-icon">person</span>
+              <input
+                type="text"
+                id="loginUser"
+                placeholder="Enter username"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="input-label">Password</label>
+            <div class="input-wrapper">
+              <span class="material-icons-round input-icon">lock</span>
+              <input
+                type="password"
+                id="loginPass"
+                placeholder="Enter password"
+                required
+              />
+            </div>
+          </div>
+          <div id="loginError" class="error-msg hidden"></div>
+          <button type="submit" class="btn-primary full-width mt-4">
+            Sign In <span class="material-icons-round">login</span>
+          </button>
+          <p class="switch-auth">
+            New here? <a onclick="app.toggleAuth('signup')">Create Account</a>
+          </p>
+        </form>
       </div>
-    </nav>
 
-    <main class="container">
-      <div class="toolbar">
-        <div class="stats">
-          <h2>My Tasks</h2>
-          <span class="subtitle">Manage your reading and deadlines</span>
+      <div id="signupCard" class="auth-card hidden">
+        <div class="brand-large">
+          <span class="material-icons-round icon-large">person_add</span>
+          <h1>Join StudyHub</h1>
         </div>
-        <button class="btn-primary" onclick="ui.toggleModal(true)">
-          <span class="plus">+</span> New Task
-        </button>
+        <p class="auth-subtitle">Create a new account</p>
+        <form onsubmit="app.signup(event)">
+          <div class="form-group">
+            <label class="input-label">Choose Username</label>
+            <div class="input-wrapper">
+              <span class="material-icons-round input-icon"
+                >person_outline</span
+              >
+              <input
+                type="text"
+                id="regUser"
+                placeholder="Ex: JohnDoe"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="input-label">Choose Password</label>
+            <div class="input-wrapper">
+              <span class="material-icons-round input-icon">lock_outline</span>
+              <input
+                type="password"
+                id="regPass"
+                placeholder="Min 4 chars"
+                required
+              />
+            </div>
+          </div>
+          <div id="signupError" class="error-msg hidden"></div>
+          <button type="submit" class="btn-primary full-width mt-4">
+            Sign Up <span class="material-icons-round">arrow_forward</span>
+          </button>
+          <p class="switch-auth">
+            Already have an account?
+            <a onclick="app.toggleAuth('login')">Login</a>
+          </p>
+        </form>
       </div>
+    </section>
 
-      <div id="taskGrid" class="grid"></div>
-    </main>
+    <div id="appView" class="hidden">
+      <nav class="navbar">
+        <div class="brand" onclick="location.reload()" title="Reload App">
+          <span class="material-icons-round icon">library_books</span>
+          <h1>StudyHub</h1>
+        </div>
+        <div class="nav-right">
+          <button id="themeToggle" class="btn-icon" onclick="app.toggleTheme()">
+            <span class="material-icons-round" id="themeIcon">dark_mode</span>
+          </button>
+          <button class="btn-primary" onclick="reporter.generate()">
+            <span class="material-icons-round">analytics</span> Report
+          </button>
+          <div class="user-profile" onclick="app.logout()" title="Logout">
+            <span class="material-icons-round">account_circle</span>
+            <span id="displayUser">User</span>
+            <span class="material-icons-round tiny">logout</span>
+          </div>
+        </div>
+      </nav>
+
+      <main class="container">
+        <div class="toolbar">
+          <div class="stats">
+            <h2>My Tasks</h2>
+            <span class="subtitle">Manage deadlines & readings</span>
+          </div>
+
+          <div
+            class="toolbar-actions"
+            style="display: flex; gap: 10px; align-items: center"
+          >
+            <div class="view-toggle-group">
+              <button
+                class="btn-icon active-view"
+                id="btnGrid"
+                onclick="app.toggleView('grid')"
+                title="Grid View"
+              >
+                <span class="material-icons-round">grid_view</span>
+              </button>
+              <button
+                class="btn-icon"
+                id="btnList"
+                onclick="app.toggleView('list')"
+                title="List View"
+              >
+                <span class="material-icons-round">view_list</span>
+              </button>
+            </div>
+
+            <div
+              style="
+                width: 1px;
+                height: 24px;
+                background: var(--border);
+                margin: 0 5px;
+              "
+            ></div>
+
+            <button
+              class="btn-primary"
+              onclick="ui.toggleModal('taskModal', true)"
+            >
+              <span class="material-icons-round">add</span> New Task
+            </button>
+          </div>
+        </div>
+
+        <div id="listHeader" class="list-header hidden">
+          <div class="col-title">Task Title</div>
+          <div class="col-meta">Priority</div>
+          <div class="col-meta">Due Date</div>
+          <div class="col-meta">Progress</div>
+          <div class="col-actions">Actions</div>
+        </div>
+
+        <div id="taskGrid" class="grid"></div>
+      </main>
+    </div>
 
     <div id="taskModal" class="modal hidden">
-      <div class="modal-content bounce-in">
-        <div class="modal-header">
-          <h3>Create New Task</h3>
-          <span class="close-btn" onclick="ui.toggleModal(false)">&times;</span>
+      <div class="modal-content modern-modal bounce-in">
+        <div class="modal-header-modern">
+          <div class="header-text">
+            <h3>Create New Task</h3>
+            <p class="subtitle">Add details and attachments below</p>
+          </div>
+          <button
+            type="button"
+            class="close-icon-btn"
+            onclick="ui.toggleModal('taskModal', false)"
+          >
+            <span class="material-icons-round">close</span>
+          </button>
         </div>
-        <form id="taskForm">
+
+        <form id="taskForm" class="modern-form">
           <div class="form-group">
-            <label>Task Title</label>
-            <input
-              type="text"
-              id="taskTitle"
-              placeholder="Ex: React Documentation..."
-              required
-            />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Priority</label>
-              <select id="taskPriority">
-                <option value="High">🔥 High</option>
-                <option value="Medium" selected>⚡ Medium</option>
-                <option value="Low">🌱 Low</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Due Date</label>
-              <input type="date" id="taskDate" required />
+            <label class="input-label" for="taskTitle"
+              >Task Title <span class="required">*</span></label
+            >
+            <div class="input-wrapper-modern">
+              <span class="material-icons-round input-icon">edit</span>
+              <input
+                type="text"
+                id="taskTitle"
+                placeholder="e.g. React Documentation Review"
+                required
+              />
             </div>
           </div>
-          <div class="form-group">
-            <label>Attach PDF (Optional)</label>
-            <input
-              type="file"
-              id="pdfFile"
-              accept="application/pdf"
-              class="file-input"
-            />
+
+          <div class="form-row-modern">
+            <div class="form-group">
+              <label class="input-label" for="taskPriority"
+                >Priority <span class="required">*</span></label
+              >
+              <div class="select-wrapper-modern">
+                <span class="material-icons-round input-icon">flag</span>
+                <select id="taskPriority">
+                  <option value="High">High Priority 🔥</option>
+                  <option value="Medium" selected>Medium Priority ⚡</option>
+                  <option value="Low">Low Priority 🌱</option>
+                </select>
+                <span class="material-icons-round chevron">expand_more</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="input-label" for="taskDate"
+                >Due Date <span class="required">*</span></label
+              >
+              <div class="input-wrapper-modern">
+                <input
+                  type="date"
+                  id="taskDate"
+                  required
+                  onclick="this.showPicker()"
+                  style="cursor: pointer"
+                />
+              </div>
+            </div>
           </div>
-          <div class="modal-actions">
+
+          <div class="form-group">
+            <label class="input-label"
+              >Attachment <span class="optional">(PDF Only)</span></label
+            >
+            <input type="file" id="pdfFile" accept="application/pdf" hidden />
+            <label for="pdfFile" class="file-dropzone" id="fileLabel">
+              <div class="dropzone-content">
+                <div class="icon-circle">
+                  <span class="material-icons-round">cloud_upload</span>
+                </div>
+                <div class="text-content">
+                  <span id="fileName" class="primary-text"
+                    >Click to upload document</span
+                  >
+                  <span class="secondary-text">PDF up to 10MB</span>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="modal-footer-modern">
             <button
               type="button"
-              class="btn-text"
-              onclick="ui.toggleModal(false)"
+              class="btn-ghost"
+              onclick="ui.toggleModal('taskModal', false)"
             >
               Cancel
             </button>
-            <button type="submit" class="btn-primary">Save Task</button>
+            <button type="submit" class="btn-primary-modern">
+              <span>Save Task</span>
+              <span class="material-icons-round">check</span>
+            </button>
           </div>
         </form>
       </div>
@@ -111,62 +293,153 @@
     <div id="pdfViewerModal" class="modal hidden">
       <div class="modal-content viewer-content bounce-in">
         <div class="viewer-header">
-          <h4 id="docName">Document</h4>
-          <button class="btn-secondary" onclick="ui.closeViewer()">
-            Close & Save
-          </button>
-        </div>
-        <div class="viewer-body">
-          <div class="pdf-controls">
-            <button onclick="viewer.changePage(-1)">❮ Prev</button>
-            <span
-              >Page <b id="pgNum">--</b> / <span id="pgTotal">--</span></span
+          <div class="viewer-title">
+            <h4
+              id="docName"
+              style="
+                max-width: 300px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              "
             >
-            <button onclick="viewer.changePage(1)">Next ❯</button>
+              Document
+            </h4>
           </div>
-          <div class="canvas-scroll">
+          <div class="header-actions">
+            <button class="btn-secondary" onclick="viewer.close()">
+              <span class="material-icons-round">close</span> Close
+            </button>
+          </div>
+        </div>
+        <div class="viewer-body" id="viewerContainer">
+          <div class="canvas-wrapper">
             <canvas id="pdfCanvas"></canvas>
           </div>
+        </div>
+        <div class="pdf-floating-controls">
+          <button
+            class="btn-icon-float"
+            onclick="viewer.changePage(-1)"
+            title="Previous Page"
+          >
+            <span class="material-icons-round">arrow_back</span>
+          </button>
+          <span class="page-indicator"
+            >Page <b id="pgNum">--</b> / <span id="pgTotal">--</span></span
+          >
+          <button
+            class="btn-icon-float"
+            onclick="viewer.changePage(1)"
+            title="Next Page"
+          >
+            <span class="material-icons-round">arrow_forward</span>
+          </button>
+          <div class="divider-vertical"></div>
+          <button
+            class="btn-icon-float"
+            onclick="viewer.zoom(-0.2)"
+            title="Zoom Out"
+          >
+            <span class="material-icons-round">remove</span>
+          </button>
+          <button
+            class="btn-icon-float"
+            onclick="viewer.zoom(0.2)"
+            title="Zoom In"
+          >
+            <span class="material-icons-round">add</span>
+          </button>
         </div>
       </div>
     </div>
 
     <div id="summaryModal" class="modal hidden">
-      <div class="modal-content bounce-in">
-        <div
-          class="modal-header"
-          style="
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
-          "
-        >
-          <h3>📊 Team Status Report</h3>
-
-          <span
-            class="close-btn"
+      <div class="modal-content bounce-in report-modal-content">
+        <div class="modal-header-modern header-gradient">
+          <div class="header-title-group">
+            <span class="material-icons-round">insights</span>
+            <h3>Team Report</h3>
+          </div>
+          <button
+            class="close-icon-btn"
             onclick="ui.closeReport()"
-            style="color: white"
-            >&times;</span
+            style="color: white; opacity: 0.9"
           >
+            <span class="material-icons-round">close</span>
+          </button>
         </div>
-
-        <div class="summary-body" style="padding: 20px">
-          <div
-            id="aiLoading"
-            class="hidden"
-            style="text-align: center; padding: 20px"
-          ></div>
+        <div class="summary-body">
+          <div id="aiLoading" class="hidden center-content">
+            <div class="loader"></div>
+            <p>Analyzing team data...</p>
+          </div>
           <div id="aiResult"></div>
         </div>
-
-        <div class="modal-actions" style="padding: 0 20px 20px">
-          <button class="btn-primary" onclick="ui.closeReport()">
-            Close Report
+        <div class="modal-footer-modern">
+          <button class="btn-primary-modern" onclick="ui.closeReport()">
+            <span>Done</span>
+            <span class="material-icons-round">check</span>
           </button>
         </div>
       </div>
     </div>
 
+    <div id="confirmModal" class="modal hidden">
+      <div
+        class="modal-content bounce-in modern-modal"
+        style="max-width: 400px; text-align: center"
+      >
+        <div style="padding: 2.5rem 2rem 1rem 2rem">
+          <div class="icon-circle-large danger-bg">
+            <span
+              class="material-icons-round"
+              style="font-size: 32px; color: var(--high)"
+              >delete_forever</span
+            >
+          </div>
+
+          <h3 style="margin: 1rem 0 0.5rem 0; font-size: 1.5rem">
+            Delete Task?
+          </h3>
+          <p style="color: var(--text-muted); margin: 0; line-height: 1.5">
+            You are about to permanently remove this task.<br />This action
+            cannot be undone.
+          </p>
+        </div>
+
+        <div
+          class="modal-footer-modern"
+          style="
+            justify-content: center;
+            gap: 12px;
+            padding: 0 2rem 2rem 2rem;
+            border-top: none;
+          "
+        >
+          <button
+            class="btn-secondary full-width"
+            onclick="ui.closeConfirm()"
+            style="justify-content: center"
+          >
+            Cancel
+          </button>
+          <button
+            id="confirmDeleteBtn"
+            class="btn-primary full-width"
+            style="
+              background: var(--high);
+              justify-content: center;
+              border: 1px solid var(--high);
+            "
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toastContainer"></div>
     <script src="app.js"></script>
   </body>
 </html>
