@@ -136,6 +136,28 @@
             <span class="subtitle">Manage deadlines & readings</span>
           </div>
 
+          <div class="search-container">
+            <div class="input-wrapper-modern compact">
+              <span class="material-icons-round input-icon">search</span>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search..."
+                oninput="app.handleSearch(this.value)"
+              />
+            </div>
+
+            <div class="select-wrapper-modern compact">
+              <select id="filterSelect" onchange="app.handleFilter(this.value)">
+                <option value="All">All Priorities</option>
+                <option value="High">High Only</option>
+                <option value="Medium">Medium Only</option>
+                <option value="Low">Low Only</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
           <div
             class="toolbar-actions"
             style="display: flex; gap: 10px; align-items: center"
@@ -157,6 +179,15 @@
               >
                 <span class="material-icons-round">view_list</span>
               </button>
+              <button
+                class="btn-icon"
+                onclick="ui.showInfo()"
+                title="Pending Tasks Overview"
+              >
+                <span class="material-icons-round" style="color: var(--primary)"
+                  >info</span
+                >
+              </button>
             </div>
 
             <div
@@ -172,7 +203,8 @@
               class="btn-primary"
               onclick="ui.toggleModal('taskModal', true)"
             >
-              <span class="material-icons-round">add</span> New Task
+              <span class="material-icons-round">add</span>
+              <span class="btn-text-desktop">New Task</span>
             </button>
           </div>
         </div>
@@ -186,6 +218,27 @@
         </div>
 
         <div id="taskGrid" class="grid"></div>
+        <div id="paginationControls" class="pagination-container hidden">
+          <button
+            class="btn-secondary"
+            id="btnPrev"
+            onclick="app.changePage(-1)"
+          >
+            <span class="material-icons-round">chevron_left</span> Prev
+          </button>
+
+          <span class="page-info">
+            Page <b id="currPage">1</b> of <span id="totalPage">1</span>
+          </span>
+
+          <button
+            class="btn-secondary"
+            id="btnNext"
+            onclick="app.changePage(1)"
+          >
+            Next <span class="material-icons-round">chevron_right</span>
+          </button>
+        </div>
       </main>
     </div>
 
@@ -440,6 +493,97 @@
     </div>
 
     <div id="toastContainer"></div>
+
+    <div id="infoModal" class="modal hidden">
+      <div
+        class="modal-content bounce-in modern-modal"
+        style="max-width: 500px"
+      >
+        <div class="modal-header-modern">
+          <div class="header-text">
+            <h3>Task Overview</h3>
+            <p class="subtitle">Your current workload status</p>
+          </div>
+          <button
+            class="close-icon-btn"
+            onclick="ui.toggleModal('infoModal', false)"
+          >
+            <span class="material-icons-round">close</span>
+          </button>
+        </div>
+
+        <div class="info-body" style="padding: 1.5rem">
+          <div class="stat-section">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+              "
+            >
+              <span style="font-weight: 600; color: var(--text-main)"
+                >Progress</span
+              >
+              <span
+                id="progressText"
+                style="color: var(--primary); font-weight: bold"
+                >0%</span
+              >
+            </div>
+            <div class="progress-track">
+              <div id="progressBar" class="progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-box box-high">
+              <span class="material-icons-round">local_fire_department</span>
+              <h2 id="countHigh">0</h2>
+              <p>High Priority</p>
+            </div>
+            <div class="stat-box box-total">
+              <span class="material-icons-round">assignment</span>
+              <h2 id="countPending">0</h2>
+              <p>Total Pending</p>
+            </div>
+            <div class="stat-box box-soon">
+              <span class="material-icons-round">alarm</span>
+              <h2 id="countDue">0</h2>
+              <p>Due Soon</p>
+            </div>
+          </div>
+
+          <div class="next-task-container">
+            <h4
+              style="
+                margin: 0 0 10px 0;
+                font-size: 0.9rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              "
+            >
+              Up Next
+            </h4>
+            <div id="nextTaskDisplay" class="next-task-card">
+              <p style="color: var(--text-muted); font-style: italic">
+                No pending tasks!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button
+            class="btn-primary-modern full-width"
+            onclick="ui.toggleModal('infoModal', false)"
+          >
+            <span>Got it</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="app.js"></script>
   </body>
 </html>
