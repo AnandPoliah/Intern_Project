@@ -4,11 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StudyHub Task Manager</title>
+
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
       pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -19,16 +21,13 @@
   <body>
     <section id="authView" class="auth-container">
       <div id="loginCard" class="auth-card bounce-in">
-        <div
-          class="brand-large"
-          onclick="location.reload()"
-          title="Refresh App"
-        >
+        <div class="brand-large" onclick="location.reload()">
           <span class="material-icons-round icon-large">school</span>
           <h1>StudyHub</h1>
         </div>
         <p class="auth-subtitle">Login to your workspace</p>
-        <form onsubmit="app.login(event)">
+
+        <form onsubmit="AuthManager.login(event)">
           <div class="form-group">
             <label class="input-label">Username</label>
             <div class="input-wrapper">
@@ -57,10 +56,12 @@
           <button type="submit" class="btn-primary full-width mt-4">
             Sign In <span class="material-icons-round">login</span>
           </button>
-          <p class="switch-auth">
-            New here? <a onclick="app.toggleAuth('signup')">Create Account</a>
-          </p>
         </form>
+
+        <p class="switch-auth">
+          New here?
+          <a onclick="AuthManager.toggleForm('signup')">Create Account</a>
+        </p>
       </div>
 
       <div id="signupCard" class="auth-card hidden">
@@ -69,7 +70,8 @@
           <h1>Join StudyHub</h1>
         </div>
         <p class="auth-subtitle">Create a new account</p>
-        <form onsubmit="app.signup(event)">
+
+        <form onsubmit="AuthManager.signup(event)">
           <div class="form-group">
             <label class="input-label">Choose Username</label>
             <div class="input-wrapper">
@@ -100,28 +102,37 @@
           <button type="submit" class="btn-primary full-width mt-4">
             Sign Up <span class="material-icons-round">arrow_forward</span>
           </button>
-          <p class="switch-auth">
-            Already have an account?
-            <a onclick="app.toggleAuth('login')">Login</a>
-          </p>
         </form>
+
+        <p class="switch-auth">
+          Already have an account?
+          <a onclick="AuthManager.toggleForm('login')">Login</a>
+        </p>
       </div>
     </section>
 
     <div id="appView" class="hidden">
       <nav class="navbar">
-        <div class="brand" onclick="location.reload()" title="Reload App">
+        <div class="brand" onclick="location.reload()">
           <span class="material-icons-round icon">library_books</span>
           <h1>StudyHub</h1>
         </div>
         <div class="nav-right">
-          <button id="themeToggle" class="btn-icon" onclick="app.toggleTheme()">
+          <button
+            id="themeToggle"
+            class="btn-icon"
+            onclick="UIManager.toggleTheme()"
+          >
             <span class="material-icons-round" id="themeIcon">dark_mode</span>
           </button>
-          <button class="btn-primary" onclick="reporter.generate()">
+          <button class="btn-primary" onclick="AIManager.generateReport()">
             <span class="material-icons-round">analytics</span> Report
           </button>
-          <div class="user-profile" onclick="app.logout()" title="Logout">
+          <div
+            class="user-profile"
+            onclick="AuthManager.logout()"
+            title="Logout"
+          >
             <span class="material-icons-round">account_circle</span>
             <span id="displayUser">User</span>
             <span class="material-icons-round tiny">logout</span>
@@ -143,65 +154,50 @@
                 type="text"
                 id="searchInput"
                 placeholder="Search..."
-                oninput="app.handleSearch(this.value)"
+                oninput="TaskManager.handleSearch(this.value)"
               />
             </div>
-
-            <div class="select-wrapper-modern compact">
-              <select id="filterSelect" onchange="app.handleFilter(this.value)">
+            <div class="select-wrapper-custom compact">
+              <select
+                id="filterSelect"
+                onchange="TaskManager.handleFilter(this.value)"
+              >
                 <option value="All">All Priorities</option>
                 <option value="High">High Only</option>
                 <option value="Medium">Medium Only</option>
                 <option value="Low">Low Only</option>
                 <option value="Completed">Completed</option>
               </select>
+              <span class="material-icons-round chevron">expand_more</span>
             </div>
           </div>
 
-          <div
-            class="toolbar-actions"
-            style="display: flex; gap: 10px; align-items: center"
-          >
+          <div class="toolbar-actions flex-row-gap">
             <div class="view-toggle-group">
               <button
                 class="btn-icon active-view"
                 id="btnGrid"
-                onclick="app.toggleView('grid')"
-                title="Grid View"
+                onclick="TaskManager.toggleView('grid')"
               >
                 <span class="material-icons-round">grid_view</span>
               </button>
               <button
                 class="btn-icon"
                 id="btnList"
-                onclick="app.toggleView('list')"
-                title="List View"
+                onclick="TaskManager.toggleView('list')"
               >
                 <span class="material-icons-round">view_list</span>
               </button>
-              <button
-                class="btn-icon"
-                onclick="ui.showInfo()"
-                title="Pending Tasks Overview"
-              >
-                <span class="material-icons-round" style="color: var(--primary)"
-                  >info</span
-                >
+              <button class="btn-icon" onclick="UIManager.showInfoDashboard()">
+                <span class="material-icons-round color-primary">info</span>
               </button>
             </div>
 
-            <div
-              style="
-                width: 1px;
-                height: 24px;
-                background: var(--border);
-                margin: 0 5px;
-              "
-            ></div>
+            <div class="divider-vertical-dark"></div>
 
             <button
               class="btn-primary"
-              onclick="ui.toggleModal('taskModal', true)"
+              onclick="UIManager.toggleModal('taskModal', true)"
             >
               <span class="material-icons-round">add</span>
               <span class="btn-text-desktop">New Task</span>
@@ -218,26 +214,41 @@
         </div>
 
         <div id="taskGrid" class="grid"></div>
+
         <div id="paginationControls" class="pagination-container hidden">
-          <button
-            class="btn-secondary"
-            id="btnPrev"
-            onclick="app.changePage(-1)"
-          >
-            <span class="material-icons-round">chevron_left</span> Prev
-          </button>
+          <div class="rows-selector">
+            <span class="text-muted" style="font-size: 0.9rem">Show:</span>
+            <select
+              class="pagination-select"
+              onchange="TaskManager.changePageSize(this.value)"
+            >
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
 
-          <span class="page-info">
-            Page <b id="currPage">1</b> of <span id="totalPage">1</span>
-          </span>
-
-          <button
-            class="btn-secondary"
-            id="btnNext"
-            onclick="app.changePage(1)"
-          >
-            Next <span class="material-icons-round">chevron_right</span>
-          </button>
+          <div class="page-nav-group">
+            <button
+              class="btn-secondary"
+              id="btnPrev"
+              onclick="TaskManager.changePage(-1)"
+            >
+              <span class="material-icons-round">chevron_left</span>
+            </button>
+            <span class="page-info"
+              >Page <b id="currPage">1</b> of
+              <span id="totalPage">1</span></span
+            >
+            <button
+              class="btn-secondary"
+              id="btnNext"
+              onclick="TaskManager.changePage(1)"
+            >
+              <span class="material-icons-round">chevron_right</span>
+            </button>
+          </div>
         </div>
       </main>
     </div>
@@ -246,21 +257,25 @@
       <div class="modal-content modern-modal bounce-in">
         <div class="modal-header-modern">
           <div class="header-text">
-            <h3>Create New Task</h3>
+            <h3 id="modalTitle">Create New Task</h3>
             <p class="subtitle">Add details and attachments below</p>
           </div>
           <button
             type="button"
             class="close-icon-btn"
-            onclick="ui.toggleModal('taskModal', false)"
+            onclick="UIManager.toggleModal('taskModal', false)"
           >
             <span class="material-icons-round">close</span>
           </button>
         </div>
 
-        <form id="taskForm" class="modern-form">
+        <form
+          id="taskForm"
+          class="modern-form"
+          onsubmit="TaskManager.saveTask(event)"
+        >
           <div class="form-group">
-            <label class="input-label" for="taskTitle"
+            <label class="input-label"
               >Task Title <span class="required">*</span></label
             >
             <div class="input-wrapper-modern">
@@ -276,7 +291,7 @@
 
           <div class="form-row-modern">
             <div class="form-group">
-              <label class="input-label" for="taskPriority"
+              <label class="input-label"
                 >Priority <span class="required">*</span></label
               >
               <div class="select-wrapper-modern">
@@ -291,7 +306,7 @@
             </div>
 
             <div class="form-group">
-              <label class="input-label" for="taskDate"
+              <label class="input-label"
                 >Due Date <span class="required">*</span></label
               >
               <div class="input-wrapper-modern">
@@ -299,8 +314,8 @@
                   type="date"
                   id="taskDate"
                   required
-                  onclick="this.showPicker()"
                   style="cursor: pointer"
+                  onclick="this.showPicker()"
                 />
               </div>
             </div>
@@ -310,7 +325,13 @@
             <label class="input-label"
               >Attachment <span class="optional">(PDF Only)</span></label
             >
-            <input type="file" id="pdfFile" accept="application/pdf" hidden />
+            <input
+              type="file"
+              id="pdfFile"
+              accept="application/pdf"
+              hidden
+              onchange="UIManager.handleFileSelect(this)"
+            />
             <label for="pdfFile" class="file-dropzone" id="fileLabel">
               <div class="dropzone-content">
                 <div class="icon-circle">
@@ -330,12 +351,12 @@
             <button
               type="button"
               class="btn-ghost"
-              onclick="ui.toggleModal('taskModal', false)"
+              onclick="UIManager.toggleModal('taskModal', false)"
             >
               Cancel
             </button>
             <button type="submit" class="btn-primary-modern">
-              <span>Save Task</span>
+              <span id="modalSubmitBtn">Save Task</span>
               <span class="material-icons-round">check</span>
             </button>
           </div>
@@ -347,34 +368,25 @@
       <div class="modal-content viewer-content bounce-in">
         <div class="viewer-header">
           <div class="viewer-title">
-            <h4
-              id="docName"
-              style="
-                max-width: 300px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              "
-            >
-              Document
-            </h4>
+            <span class="material-icons-round">picture_as_pdf</span>
+            <h4 id="docName" class="truncate-text">Document</h4>
           </div>
-          <div class="header-actions">
-            <button class="btn-secondary" onclick="viewer.close()">
-              <span class="material-icons-round">close</span> Close
-            </button>
-          </div>
+          <button class="btn-secondary" onclick="PDFManager.close()">
+            <span class="material-icons-round">close</span> Close
+          </button>
         </div>
-        <div class="viewer-body" id="viewerContainer">
+
+        <div class="viewer-body">
           <div class="canvas-wrapper">
             <canvas id="pdfCanvas"></canvas>
           </div>
         </div>
+
         <div class="pdf-floating-controls">
           <button
             class="btn-icon-float"
-            onclick="viewer.changePage(-1)"
-            title="Previous Page"
+            onclick="PDFManager.changePage(-1)"
+            title="Previous"
           >
             <span class="material-icons-round">arrow_back</span>
           </button>
@@ -383,22 +395,22 @@
           >
           <button
             class="btn-icon-float"
-            onclick="viewer.changePage(1)"
-            title="Next Page"
+            onclick="PDFManager.changePage(1)"
+            title="Next"
           >
             <span class="material-icons-round">arrow_forward</span>
           </button>
           <div class="divider-vertical"></div>
           <button
             class="btn-icon-float"
-            onclick="viewer.zoom(-0.2)"
+            onclick="PDFManager.zoom(-0.2)"
             title="Zoom Out"
           >
             <span class="material-icons-round">remove</span>
           </button>
           <button
             class="btn-icon-float"
-            onclick="viewer.zoom(0.2)"
+            onclick="PDFManager.zoom(0.2)"
             title="Zoom In"
           >
             <span class="material-icons-round">add</span>
@@ -415,84 +427,50 @@
             <h3>Team Report</h3>
           </div>
           <button
-            class="close-icon-btn"
-            onclick="ui.closeReport()"
-            style="color: white; opacity: 0.9"
+            class="close-icon-btn white-btn"
+            onclick="UIManager.toggleModal('summaryModal', false)"
           >
             <span class="material-icons-round">close</span>
           </button>
         </div>
         <div class="summary-body">
-          <div id="aiLoading" class="hidden center-content">
+          <div id="aiLoading" class="center-content hidden">
             <div class="loader"></div>
             <p>Analyzing team data...</p>
           </div>
           <div id="aiResult"></div>
-        </div>
-        <div class="modal-footer-modern">
-          <button class="btn-primary-modern" onclick="ui.closeReport()">
-            <span>Done</span>
-            <span class="material-icons-round">check</span>
-          </button>
         </div>
       </div>
     </div>
 
     <div id="confirmModal" class="modal hidden">
       <div
-        class="modal-content bounce-in modern-modal"
-        style="max-width: 400px; text-align: center"
+        class="modal-content bounce-in modern-modal center-text"
+        style="max-width: 400px"
       >
-        <div style="padding: 2.5rem 2rem 1rem 2rem">
+        <div class="padding-large">
           <div class="icon-circle-large danger-bg">
-            <span
-              class="material-icons-round"
-              style="font-size: 32px; color: var(--high)"
-              >delete_forever</span
-            >
+            <span class="material-icons-round icon-danger">delete_forever</span>
           </div>
-
-          <h3 style="margin: 1rem 0 0.5rem 0; font-size: 1.5rem">
-            Delete Task?
-          </h3>
-          <p style="color: var(--text-muted); margin: 0; line-height: 1.5">
+          <h3 class="mt-4">Delete Task?</h3>
+          <p class="text-muted">
             You are about to permanently remove this task.<br />This action
             cannot be undone.
           </p>
         </div>
-
-        <div
-          class="modal-footer-modern"
-          style="
-            justify-content: center;
-            gap: 12px;
-            padding: 0 2rem 2rem 2rem;
-            border-top: none;
-          "
-        >
+        <div class="modal-footer-modern center-actions">
           <button
             class="btn-secondary full-width"
-            onclick="ui.closeConfirm()"
-            style="justify-content: center"
+            onclick="UIManager.toggleModal('confirmModal', false)"
           >
             Cancel
           </button>
-          <button
-            id="confirmDeleteBtn"
-            class="btn-primary full-width"
-            style="
-              background: var(--high);
-              justify-content: center;
-              border: 1px solid var(--high);
-            "
-          >
+          <button id="confirmDeleteBtn" class="btn-danger full-width">
             Delete
           </button>
         </div>
       </div>
     </div>
-
-    <div id="toastContainer"></div>
 
     <div id="infoModal" class="modal hidden">
       <div
@@ -506,35 +484,21 @@
           </div>
           <button
             class="close-icon-btn"
-            onclick="ui.toggleModal('infoModal', false)"
+            onclick="UIManager.toggleModal('infoModal', false)"
           >
             <span class="material-icons-round">close</span>
           </button>
         </div>
-
-        <div class="info-body" style="padding: 1.5rem">
+        <div class="info-body padding-medium">
           <div class="stat-section">
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 8px;
-              "
-            >
-              <span style="font-weight: 600; color: var(--text-main)"
-                >Progress</span
-              >
-              <span
-                id="progressText"
-                style="color: var(--primary); font-weight: bold"
-                >0%</span
-              >
+            <div class="flex-between mb-2">
+              <span class="font-bold">Progress</span>
+              <span id="progressText" class="color-primary font-bold">0%</span>
             </div>
             <div class="progress-track">
               <div id="progressBar" class="progress-fill"></div>
             </div>
           </div>
-
           <div class="stat-grid">
             <div class="stat-box box-high">
               <span class="material-icons-round">local_fire_department</span>
@@ -552,37 +516,25 @@
               <p>Due Soon</p>
             </div>
           </div>
-
           <div class="next-task-container">
-            <h4
-              style="
-                margin: 0 0 10px 0;
-                font-size: 0.9rem;
-                color: var(--text-muted);
-                text-transform: uppercase;
-                letter-spacing: 1px;
-              "
-            >
-              Up Next
-            </h4>
+            <h4 class="section-title-small">Up Next</h4>
             <div id="nextTaskDisplay" class="next-task-card">
-              <p style="color: var(--text-muted); font-style: italic">
-                No pending tasks!
-              </p>
+              <p class="text-muted italic">No pending tasks!</p>
             </div>
           </div>
         </div>
-
         <div class="modal-footer-modern">
           <button
             class="btn-primary-modern full-width"
-            onclick="ui.toggleModal('infoModal', false)"
+            onclick="UIManager.toggleModal('infoModal', false)"
           >
             <span>Got it</span>
           </button>
         </div>
       </div>
     </div>
+
+    <div id="toastContainer"></div>
 
     <script src="app.js"></script>
   </body>

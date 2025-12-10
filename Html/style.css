@@ -5,6 +5,7 @@
   --primary: #6366f1;
   --primary-hover: #4f46e5;
   --bg: #0f172a;
+  --bg-secondary: #1e293b; /* Replaces various surface colors */
   --surface: #1e293b;
   --text: #f1f5f9;
   --text-muted: #94a3b8;
@@ -18,6 +19,7 @@
 
 body.light-mode {
   --bg: #f3f4f6;
+  --bg-secondary: #e5e7eb;
   --surface: #ffffff;
   --text: #1e293b;
   --text-muted: #64748b;
@@ -52,30 +54,57 @@ body {
 .mt-4 {
   margin-top: 1.5rem;
 }
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.font-bold {
+  font-weight: 600;
+}
+.color-primary {
+  color: var(--primary);
+}
+.italic {
+  font-style: italic;
+}
+.truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+.flex-row-gap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+}
 .center-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
-
-/* Custom Scrollbar (Shared) */
-.viewer-body::-webkit-scrollbar,
-.summary-body::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.center-text {
+  text-align: center;
 }
-.viewer-body::-webkit-scrollbar-track,
-.summary-body::-webkit-scrollbar-track {
-  background: transparent;
+.center-actions {
+  justify-content: center;
+  gap: 12px;
 }
-.viewer-body::-webkit-scrollbar-thumb,
-.summary-body::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
+.padding-large {
+  padding: 2.5rem 2rem 1rem 2rem;
+}
+.padding-medium {
+  padding: 1.5rem;
 }
 
-/* Keyframes */
+/* Animation Keyframes */
 @keyframes bounceIn {
   from {
     transform: scale(0.95);
@@ -102,11 +131,13 @@ body {
     transform: rotate(360deg);
   }
 }
+.bounce-in {
+  animation: bounceIn 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
 
 /* =========================================
-   3. UI COMPONENTS (Buttons, Inputs, Forms)
+   3. BUTTONS & INPUTS
    ========================================= */
-/* Buttons */
 button {
   cursor: pointer;
   transition: 0.2s;
@@ -114,7 +145,8 @@ button {
 }
 
 .btn-primary,
-.btn-primary-modern {
+.btn-primary-modern,
+.btn-danger {
   background: var(--primary);
   color: white;
   border: none;
@@ -129,6 +161,12 @@ button {
 .btn-primary:hover,
 .btn-primary-modern:hover {
   background: var(--primary-hover);
+}
+.btn-danger {
+  background: var(--high);
+}
+.btn-danger:hover {
+  opacity: 0.9;
 }
 
 .btn-secondary,
@@ -152,9 +190,13 @@ button {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text);
 }
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .btn-icon,
-.btn-text,
+.btn-icon-float,
 .close-icon-btn {
   background: none;
   border: none;
@@ -162,22 +204,24 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.btn-icon:hover,
-.btn-text:hover {
-  color: var(--text);
-}
-.close-icon-btn {
-  padding: 8px;
   border-radius: 50%;
+  padding: 8px;
+}
+.btn-icon:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
 }
 .close-icon-btn:hover {
   background: rgba(239, 68, 68, 0.1);
   color: var(--high);
   transform: rotate(90deg);
 }
+.white-btn {
+  color: white;
+  opacity: 0.9;
+}
 
-/* Unified Input System */
+/* Input Fields */
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -186,12 +230,10 @@ button {
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
 }
-
 .input-label {
   display: block;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text);
   margin-bottom: 0.5rem;
 }
 .required {
@@ -205,11 +247,16 @@ button {
 
 .input-wrapper,
 .input-wrapper-modern,
-.select-wrapper-modern {
+.select-wrapper-modern,
+.select-wrapper-custom {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
+.select-wrapper-custom {
+  width: 70%;
+} /* Toolbar dropdown width */
 
 input,
 select {
@@ -221,7 +268,8 @@ select {
   color: var(--text);
   font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: 0.2s;
+  appearance: none; /* Hide default arrow */
 }
 input:focus,
 select:focus {
@@ -229,25 +277,21 @@ select:focus {
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
 }
 
-.input-icon {
-  position: absolute;
-  left: 12px;
-  color: var(--text-muted);
-  font-size: 20px;
-  pointer-events: none;
-}
+.input-icon,
 .chevron {
   position: absolute;
-  right: 12px;
   color: var(--text-muted);
   pointer-events: none;
 }
-select {
-  appearance: none;
-  cursor: pointer;
+.input-icon {
+  left: 12px;
+  font-size: 20px;
+}
+.chevron {
+  right: 12px;
 }
 
-/* File Upload */
+/* File Dropzone */
 .file-dropzone {
   display: block;
   background: var(--input-bg);
@@ -279,6 +323,7 @@ select {
 .primary-text {
   font-weight: 600;
   font-size: 0.95rem;
+  display: block;
 }
 .secondary-text {
   font-size: 0.8rem;
@@ -319,18 +364,12 @@ select {
   cursor: pointer;
   font-weight: bold;
 }
-
-.brand,
 .brand-large {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   color: var(--primary);
   cursor: pointer;
-}
-.brand h1,
-.brand-large h1 {
-  margin: 0;
 }
 .brand-large .icon-large {
   font-size: 2.5rem;
@@ -344,12 +383,18 @@ select {
   align-items: center;
   border-bottom: 1px solid var(--border);
 }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary);
+  cursor: pointer;
+}
 .nav-right {
   display: flex;
   gap: 15px;
   align-items: center;
 }
-
 .user-profile {
   display: flex;
   align-items: center;
@@ -366,26 +411,65 @@ select {
 }
 
 .container {
-  padding: 1rem;
-  padding-top: 0;
+  padding: 0 2rem 0 2rem;
   margin: 0 auto;
   width: 100%;
 }
+
+/* Toolbar & Search */
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 15px;
 }
+.search-container {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  max-width: 400px;
+}
+.compact input,
+.compact select {
+  padding: 8px 10px 8px 36px;
+  height: 40px;
+}
+.compact .input-icon {
+  font-size: 18px;
+  left: 10px;
+}
+.view-toggle-group {
+  display: flex;
+  background: var(--input-bg);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.active-view {
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  opacity: 1;
+}
+.divider-vertical-dark {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 5px;
+}
+
+/* =========================================
+   5. TASK GRID & LIST
+   ========================================= */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(18%, 1fr));
   gap: 1rem;
 }
 
-/* =========================================
-   5. TASK CARDS
-   ========================================= */
+/* Card Style */
 .card {
   background: var(--surface);
   border-radius: 12px;
@@ -400,7 +484,6 @@ select {
   transform: translateY(-4px);
   border-color: var(--primary);
 }
-
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -411,15 +494,11 @@ select {
   font-weight: 600;
   margin: 0;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
 }
 .task-title:hover {
   color: var(--primary);
   text-decoration: underline;
 }
-
 .badge {
   font-size: 0.75rem;
   padding: 4px 10px;
@@ -462,7 +541,7 @@ select {
   gap: 10px;
 }
 .btn-read {
-  flex: 1; /* Takes up remaining space */
+  flex: 1;
   background: rgba(99, 102, 241, 0.1);
   color: var(--primary);
   border: 1px solid transparent;
@@ -473,24 +552,72 @@ select {
   align-items: center;
   justify-content: center;
   gap: 5px;
-
-  /* --- NEW LINES TO FIX WRAPPING --- */
-  white-space: nowrap; /* Forces text to stay on one line */
-  overflow: hidden; /* Hides text if it gets too long */
-  text-overflow: ellipsis; /* Adds "..." if completely out of space */
-  font-size: 0.8rem; /* Ensures font is small enough to fit */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.8rem;
 }
-.btn-del {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--high);
-  border: none;
-  padding: 8px;
+
+/* List Style */
+.list-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.list-header {
+  display: grid;
+  grid-template-columns: 50px 2fr 120px 140px 100px 140px;
+  padding: 0 1.5rem 10px 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 15px;
+  align-items: center;
+}
+.list-header > div:first-child {
+  grid-column: 2;
+} /* Align title */
+.list-item-row {
+  display: grid;
+  grid-template-columns: 50px 2fr 120px 140px 100px 140px;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  margin-left: auto;
+  padding: 1rem 1rem;
+  align-items: center;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.list-item-row:hover {
+  transform: translateX(4px);
+  border-color: var(--primary);
+}
+.row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Completed State */
+.task-done {
+  opacity: 0.6;
+  background-color: var(--bg-secondary);
+}
+.task-done .task-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+.task-done:hover {
+  opacity: 1;
+}
+.btn-check-active {
+  color: var(--low) !important;
+  background: rgba(16, 185, 129, 0.1) !important;
 }
 
 /* =========================================
-   6. MODALS (Unified)
+   6. MODALS
    ========================================= */
 .modal {
   position: fixed;
@@ -502,8 +629,6 @@ select {
   align-items: center;
   justify-content: center;
 }
-
-/* Base Modal Content */
 .modern-modal,
 .viewer-content,
 .report-modal-content {
@@ -515,8 +640,6 @@ select {
   display: flex;
   flex-direction: column;
 }
-
-/* Specific Sizes */
 .modern-modal {
   width: 500px;
   max-width: 95%;
@@ -531,36 +654,20 @@ select {
   width: 900px !important;
   max-width: 95vw;
   height: 85vh;
-  border-radius: 16px;
 }
 
 .modal-header-modern,
-.viewer-header,
-.header-gradient {
-  padding: 1rem 1rem;
+.viewer-header {
+  padding: 1rem;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
 .header-gradient {
   background: linear-gradient(135deg, var(--primary), #818cf8);
   border-bottom: none;
-}
-
-.header-text h3,
-.viewer-title h4,
-.header-title-group h3 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.header-text .subtitle {
-  margin: 5px 0 0 0;
-  font-size: 0.9rem;
-  color: var(--text-muted);
 }
 .header-title-group {
   display: flex;
@@ -569,9 +676,13 @@ select {
   gap: 10px;
 }
 .header-title-group h3 {
+  margin: 0;
   color: white;
 }
-
+.header-text h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
 .modern-form {
   padding: 2rem;
   display: flex;
@@ -583,60 +694,29 @@ select {
   justify-content: flex-end;
   padding: 1rem;
   border-top: 1px solid var(--border);
+  gap: 10px;
 }
 
-/* =========================================
-   7. PDF VIEWER FEATURE
-   ========================================= */
+/* PDF Specifics */
 .viewer-body {
   flex: 1;
   overflow: auto;
-  position: relative;
   background: #1e1e1e;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  /* CHANGE: Increase bottom padding to accommodate the floating bar */
   padding: 2rem 2rem 100px;
-}
-
-/* 1. Ensure the header items center vertically */
-.viewer-header {
-  align-items: center; /* Overrides the 'flex-start' from the shared modal style */
-  background: var(
-    --surface
-  ); /* Ensures it sits on top of the dark viewer body */
-  z-index: 50; /* Ensures it stays on top of the canvas */
-}
-
-/* 2. Style the Title Group (Icon + Text) */
-.viewer-title {
-  display: flex;
-  align-items: center;
-  gap: 12px; /* Space between icon and text */
-  color: var(--text);
-}
-
-.viewer-title .material-icons-round {
-  color: var(--primary);
-  font-size: 24px;
-}
-
-/* 3. Style the Close Button area */
-.header-actions {
-  display: flex;
-  align-items: center;
 }
 .canvas-wrapper {
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
   background: white;
   line-height: 0;
 }
-canvas {
-  display: block;
-  max-width: none;
+.viewer-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text);
 }
-
 .pdf-floating-controls {
   position: absolute;
   bottom: 30px;
@@ -653,164 +733,181 @@ canvas {
   z-index: 20;
   backdrop-filter: blur(8px);
 }
-.btn-icon-float {
-  background: transparent;
-  border: none;
-  color: #e2e8f0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-icon-float:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-.divider-vertical {
-  width: 1px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.2);
-}
 .page-indicator {
   color: #94a3b8;
   font-variant-numeric: tabular-nums;
-  font-size: 0.9rem;
   min-width: 80px;
   text-align: center;
 }
 
-/* =========================================
-   8. AI REPORT FEATURE
-   ========================================= */
-.summary-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 25px;
-  background: var(--bg);
-}
-.report-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
+/* Report & Info Styles */
 .report-summary-box {
   background: linear-gradient(to right, rgba(99, 102, 241, 0.1), transparent);
   border-left: 4px solid var(--primary);
   padding: 1.2rem;
   border-radius: 8px;
+  margin-bottom: 1.5rem;
 }
-.report-summary-box h3 {
-  margin: 0 0 0.5rem 0;
-  color: var(--primary);
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.report-summary-box p {
-  margin: 0;
-  color: var(--text);
-  line-height: 1.6;
-}
-
 .report-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.25rem;
 }
-
 .report-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
 }
-.report-card:hover {
-  transform: translateY(-2px);
-}
-
-.report-card h4 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-}
-.report-card ul {
-  margin: 0;
-  padding-left: 0;
-  list-style: none;
-}
-.report-card li {
-  position: relative;
-  padding-left: 1.2rem;
-  margin-bottom: 0.8rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  font-size: 0.95rem;
-}
-.report-card li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  font-weight: bold;
-}
-
-/* Report Color Variants */
 .report-card.danger {
   border-top: 4px solid var(--high);
 }
-.report-card.danger h4,
-.report-card.danger li::before {
-  color: var(--high);
-}
-
 .report-card.success {
   border-top: 4px solid var(--low);
 }
-.report-card.success h4,
-.report-card.success li::before {
-  color: var(--low);
-}
-
 .report-card.info {
   border-top: 4px solid var(--primary);
 }
-.report-card.info h4,
-.report-card.info li::before {
-  color: var(--primary);
-}
-
 .report-card.warning {
   border-top: 4px solid var(--med);
 }
-.report-card.warning h4,
-.report-card.warning li::before {
-  color: var(--med);
+.report-card ul {
+  padding-left: 1.2rem;
+  list-style: disc;
+  color: var(--text-muted);
 }
 
-/* =========================================
-   9. MISC (Toasts & Loaders)
-   ========================================= */
-#toastContainer {
+/* Dashboard Info Stats */
+.progress-track {
+  width: 100%;
+  height: 12px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--low));
+  width: 0%;
+  transition: width 0.5s ease;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+  margin: 1.5rem 0;
+}
+.stat-box {
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.stat-box h2 {
+  font-size: 1.8rem;
+  margin: 5px 0;
+}
+.stat-box p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.box-high {
+  color: var(--high);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.box-total {
+  color: var(--primary);
+}
+.box-soon {
+  color: #f59e0b;
+}
+.next-task-card {
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-title-small {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Misc */
+/* --- PAGINATION UPDATES --- */
+
+/* Wrapper to spread items apart */
+.pagination-container {
+  display: flex;
+  justify-content: space-between; /* Pushes Selector to left, Buttons to right */
+  align-items: center;
+  margin-top: 2rem;
+  padding-bottom: 2rem;
+  border-top: 1px solid var(--border); /* Optional: adds a nice separator line */
+  padding-top: 1rem;
+}
+
+/* Grouping the buttons together */
+.page-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* The "Rows per page" dropdown style */
+.pagination-select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  margin-left: 8px;
+  width: auto; /* Overrides the 100% width from general input styles */
+}
+
+.rows-selector {
+  display: flex;
+  align-items: center;
+}
+
+/* Mobile Tweaks: Stack them vertically on small screens */
+@media (max-width: 600px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+.icon-circle-large {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+.danger-bg {
+  background: rgba(239, 68, 68, 0.1);
+}
+.icon-danger {
+  font-size: 32px;
+  color: var(--high);
+}
+.toast {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 2000;
-}
-.toast {
   background: var(--surface);
   padding: 12px 20px;
   border-radius: 8px;
@@ -820,15 +917,7 @@ canvas {
   gap: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.3s;
-}
-.error-msg {
-  color: var(--high);
-  font-size: 0.9rem;
-  text-align: center;
-  margin-bottom: 10px;
-  padding: 8px;
-  background: rgba(239, 68, 68, 0.1);
-  border-radius: 6px;
+  z-index: 2000;
 }
 .loader {
   border: 3px solid rgba(255, 255, 255, 0.1);
@@ -837,117 +926,22 @@ canvas {
   width: 30px;
   height: 30px;
   animation: spin 1s linear infinite;
-  margin: 0 auto 10px;
+  margin-bottom: 10px;
 }
 
-/* --- VIEW TOGGLE & LIST MODE --- */
-
-/* 1. Toggle Buttons */
-.view-toggle-group {
-  display: flex;
-  background: var(--input-bg);
-  padding: 4px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-.view-toggle-group .btn-icon {
-  padding: 6px;
-  border-radius: 6px;
-  opacity: 0.6;
-}
-.view-toggle-group .btn-icon:hover {
-  opacity: 1;
-}
-.view-toggle-group .btn-icon.active-view {
-  background: var(--surface);
-  color: var(--primary);
-  opacity: 1;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-/* 2. List Layout Container */
-.list-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* 3. List Header (Table Columns) */
-/* UPDATED: Added a 50px column at the start for the empty checkbox space */
-.list-header {
-  display: grid;
-  grid-template-columns: 50px 2fr 120px 140px 100px 140px;
-  padding: 0 1.5rem 10px 1.5rem;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 15px;
-  align-items: center;
-}
-
-/* CRITICAL FIX: Push "Task Title" text to the 2nd column so it doesn't sit over the checkbox area */
-.list-header > div:first-child {
-  grid-column: 2;
-}
-
-/* 4. List Item Row */
-/* UPDATED: Added 50px column for the check button */
-.list-item-row {
-  display: grid;
-  grid-template-columns: 50px 2fr 120px 140px 100px 140px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem 1rem;
-  align-items: center;
-  transition: transform 0.2s, border-color 0.2s;
-}
-
-.list-item-row:hover {
-  transform: translateX(4px);
-  border-color: var(--primary);
-}
-
-/* 5. Adjusting internal elements for List Mode */
-.list-item-row .task-title {
-  font-size: 1rem;
-  margin: 0;
-  white-space: nowrap; /* Prevent text wrap */
-  overflow: hidden; /* Hide overflow */
-  text-overflow: ellipsis; /* Add ... if too long */
-}
-.list-item-row .badge {
-  width: fit-content;
-}
-.list-item-row .meta-text {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.list-item-row .row-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end; /* Align actions to the right */
-}
-
-/* 6. Mobile Responsiveness for List */
 @media (max-width: 900px) {
-  .list-header {
+  .list-header,
+  .btn-text-desktop {
     display: none !important;
   }
   .list-item-row {
-    display: flex; /* Switch to Flex on mobile */
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
     padding: 1.5rem;
   }
-  .list-item-row .row-actions {
+  .row-actions {
     width: 100%;
     justify-content: space-between;
     margin-top: 10px;
@@ -955,188 +949,6 @@ canvas {
     padding-top: 10px;
   }
 }
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  margin-top: 2rem;
-  padding-bottom: 2rem;
-}
-
-.page-info {
-  color: var(--text-main);
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-
-/* Ensure buttons look disabled when needed */
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* --- COMPLETED TASK STYLES --- */
-
-/* Dim the whole card */
-.task-done {
-  opacity: 0.6;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
-  transition: all 0.3s ease;
-}
-
-/* Strike through the title */
-.task-done .task-title {
-  text-decoration: line-through;
-  color: var(--text-muted);
-}
-
-/* Green Check Button when active */
-.btn-check-active {
-  color: var(--low) !important; /* Green color */
-  background: rgba(16, 185, 129, 0.1) !important;
-}
-
-/* Hover effect to undim */
-.task-done:hover {
-  opacity: 1;
-}
-
-/* --- INFO DASHBOARD STYLES --- */
-
-/* Progress Bar */
-.progress-track {
-  width: 100%;
-  height: 12px;
-  background: var(--bg-secondary);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--low));
-  width: 0%;
-  transition: width 0.5s ease;
-}
-
-/* Stat Grid */
-.stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 1.5rem;
-}
-
-.stat-box {
-  background: var(--bg-secondary);
-  padding: 1rem;
-  border-radius: 12px;
-  text-align: center;
-  border: 1px solid var(--border);
-}
-
-.stat-box h2 {
-  font-size: 1.8rem;
-  margin: 5px 0;
-  color: var(--text-main);
-}
-
-.stat-box p {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.stat-box .material-icons-round {
-  font-size: 24px;
-  opacity: 0.8;
-}
-
-/* Specific Colors for Boxes */
-.box-high {
-  color: var(--high);
-  border-color: rgba(239, 68, 68, 0.2);
-}
-.box-high .material-icons-round {
-  color: var(--high);
-}
-
-.box-total {
-  color: var(--primary);
-}
-.box-total .material-icons-round {
-  color: var(--primary);
-}
-
-.box-soon {
-  color: #f59e0b;
-} /* Amber for Warning */
-.box-soon .material-icons-round {
-  color: #f59e0b;
-}
-
-/* Next Task Card */
-.next-task-card {
-  background: var(--bg-main);
-  border: 1px dashed var(--border);
-  padding: 1rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.next-task-card .material-icons-round {
-  color: var(--primary);
-  background: rgba(99, 102, 241, 0.1);
-  padding: 8px;
-  border-radius: 50%;
-}
-
-/* --- SEARCH & TOOLBAR STYLES --- */
-
-/* Make toolbar wrap on small screens */
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-/* Container for search inputs */
-.search-container {
-  display: flex;
-  gap: 10px;
-  flex: 1;
-  max-width: 400px;
-}
-
-/* Compact version of your existing inputs */
-.compact input,
-.compact select {
-  padding: 8px 10px 8px 36px;
-  font-size: 0.9rem;
-  height: 40px; /* Enforce height alignment */
-}
-
-.compact .input-icon {
-  font-size: 18px;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.btn-text-desktop {
-  display: inline;
-}
-
-/* Mobile Tweaks */
 @media (max-width: 768px) {
   .toolbar {
     flex-direction: column;
@@ -1144,9 +956,6 @@ canvas {
   }
   .search-container {
     max-width: 100%;
-    order: 3; /* Move search to bottom on mobile */
-  }
-  .btn-text-desktop {
-    display: none; /* Hide text "New Task" on mobile to save space */
+    order: 3;
   }
 }
