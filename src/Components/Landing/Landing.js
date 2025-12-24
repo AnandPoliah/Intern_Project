@@ -60,11 +60,13 @@ export default function Landing() {
         (filters.priority === "All" || t.priority === filters.priority) &&
         t.title.toLowerCase().includes(filters.search.toLowerCase())
     )
-    .sort(
-      (a, b) =>
-        S_VAL[b.status] - S_VAL[a.status] ||
-        P_VAL[b.priority] - P_VAL[a.priority]
-    );
+    .sort((a, b) => {
+      // Primary sort: Date created (LIFO) - assuming id is timestamp
+      const dateDiff = b.id - a.id;
+      // Secondary sorts can remain or be removed based on strict LIFO requirement.
+      // Prioritizing LIFO as requested:
+      return dateDiff;
+    });
 
   return (
     <div className="app">
@@ -108,8 +110,12 @@ export default function Landing() {
                 {t.priority}
               </span>
               <div>
-                <button onClick={() => openModal(t)}>✎</button>
-                <button onClick={() => handleDelete(t.id)}>×</button>
+                <button onClick={() => openModal(t)}>
+                  <span className="material-icons">edit</span>
+                </button>
+                <button onClick={() => handleDelete(t.id)}>
+                  <span className="material-icons">delete</span>
+                </button>
               </div>
             </div>
             <h3>{t.title}</h3>

@@ -6,7 +6,7 @@
 
 // This is the API key for Google Gemini (AI features).
 // In a real production app, you should never store keys in frontend code.
-const GLOBAL_API_KEY = "API_KEY";
+const GLOBAL_API_KEY = "AIzaSyDH_OHdBNzFVikmKunM9_fhFIgPDFJeyGs";
 
 // A shortcut helper. Instead of typing document.getElementById("id") every time,
 // we can just type $("id"). This saves a lot of typing!
@@ -111,8 +111,32 @@ const AuthManager = {
   // Logic for logging in
   login(e) {
     e.preventDefault(); // Stop page refresh
-    const u = $("loginUser").value.trim();
-    const p = $("loginPass").value.trim();
+    const uInput = $("loginUser");
+    const pInput = $("loginPass");
+    const u = uInput.value.trim();
+    const p = pInput.value.trim();
+    const errBox = $("loginError");
+
+    // Reset errors
+    errBox.classList.add("hidden");
+    uInput.classList.remove("input-error");
+    pInput.classList.remove("input-error");
+
+    let hasError = false;
+    if (!u) {
+      uInput.classList.add("input-error");
+      hasError = true;
+    }
+    if (!p) {
+      pInput.classList.add("input-error");
+      hasError = true;
+    }
+
+    if (hasError) {
+      errBox.innerText = "Please fill in all fields";
+      errBox.classList.remove("hidden");
+      return;
+    }
 
     // Check if user exists AND password matches
     if (this.usersDB[u] && this.usersDB[u] === p) {
@@ -121,29 +145,55 @@ const AuthManager = {
       this.showApp();
       UIManager.notify(`Welcome back, ${u}!`);
       // Clear inputs
-      $("loginUser").value = "";
-      $("loginPass").value = "";
+      uInput.value = "";
+      pInput.value = "";
     } else {
-      $("loginError").innerText = "Invalid credentials";
-      $("loginError").classList.remove("hidden");
+      errBox.innerText = "Invalid credentials";
+      errBox.classList.remove("hidden");
+      uInput.classList.add("input-error");
+      pInput.classList.add("input-error");
     }
   },
 
   // Logic for creating new account
   signup(e) {
     e.preventDefault();
-    const u = $("regUser").value.trim();
-    const p = $("regPass").value.trim();
+    const uInput = $("regUser");
+    const pInput = $("regPass");
+    const u = uInput.value.trim();
+    const p = pInput.value.trim();
+    const errBox = $("signupError");
+
+    // Reset errors
+    errBox.classList.add("hidden");
+    uInput.classList.remove("input-error");
+    pInput.classList.remove("input-error");
 
     // Validation checks
-    if (this.usersDB[u]) {
-      $("signupError").innerText = "Username taken";
-      $("signupError").classList.remove("hidden");
-      return;
+    let errorMsg = "";
+
+    if (!u) {
+      uInput.classList.add("input-error");
+      errorMsg = "Username required";
+    } else if (u.length < 3) {
+      uInput.classList.add("input-error");
+      errorMsg = "Username must be at least 3 chars";
+    } else if (this.usersDB[u]) {
+      uInput.classList.add("input-error");
+      errorMsg = "Username already taken";
     }
-    if (p.length < 4) {
-      $("signupError").innerText = "Password too short";
-      $("signupError").classList.remove("hidden");
+
+    if (!p) {
+      pInput.classList.add("input-error");
+      if (!errorMsg) errorMsg = "Password required";
+    } else if (p.length < 4) {
+      pInput.classList.add("input-error");
+      if (!errorMsg) errorMsg = "Password must be at least 4 chars";
+    }
+
+    if (errorMsg) {
+      errBox.innerText = errorMsg;
+      errBox.classList.remove("hidden");
       return;
     }
 
@@ -156,8 +206,8 @@ const AuthManager = {
     localStorage.setItem("currentUser", u);
     this.showApp();
     UIManager.notify("Account created!");
-    $("regUser").value = "";
-    $("regPass").value = "";
+    uInput.value = "";
+    pInput.value = "";
   },
 
   logout() {
@@ -341,8 +391,9 @@ const TaskManager = {
         );
     }
 
-    // 2. SORT: High priority first
-    filtered.sort((a, b) => scores[b.priority] - scores[a.priority]);
+    // 2. SORT: Recently Created (LIFO)
+    // Assuming id is a timestamp, larger id = newer task
+    filtered.sort((a, b) => b.id - a.id);
 
     // 3. PAGINATE: Calculate which items to show
     const totalPages = Math.ceil(filtered.length / this.itemsPerPage) || 1;
@@ -527,7 +578,10 @@ const UIManager = {
                    <div class="font-bold">${nextTask.title}</div>
                    <div class="text-muted" style="font-size:0.8rem">Due: ${nextTask.date} • ${nextTask.priority}</div>
                </div>`
-      : `<p class="color-primary font-bold" style="margin:0">All caught up! 🎉</p>`;
+      : `<div style="display:flex; align-items:center; gap:8px">
+             <span class="material-icons-round color-primary">celebration</span>
+             <p class="color-primary font-bold" style="margin:0">All caught up!</p>
+         </div>`;
 
     this.toggleModal("infoModal", true);
   },
@@ -776,7 +830,7 @@ const AIManager = {
 
   // Sends the network request to Google
   async callApi(text) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GLOBAL_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GLOBAL_API_KEY}`;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

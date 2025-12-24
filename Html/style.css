@@ -1,6 +1,3 @@
-/* =========================================
-   1. VARIABLES & RESET
-   ========================================= */
 :root {
   --primary: #6366f1;
   --primary-hover: #4f46e5;
@@ -16,7 +13,6 @@
   --low: #10b981;
   --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
-
 body.light-mode {
   --bg: #f3f4f6;
   --bg-secondary: #e5e7eb;
@@ -26,11 +22,9 @@ body.light-mode {
   --border: #e2e8f0;
   --input-bg: #ffffff;
 }
-
 * {
   box-sizing: border-box;
 }
-
 body {
   margin: 0;
   font-family: "Segoe UI", sans-serif;
@@ -40,11 +34,7 @@ body {
   display: flex;
   flex-direction: column;
   transition: background 0.3s, color 0.3s;
-}
-
-/* =========================================
-   2. UTILITIES & ANIMATIONS
-   ========================================= */
+} /* ========================================= 2. UTILITIES & ANIMATIONS ========================================= */
 .hidden {
   display: none !important;
 }
@@ -89,6 +79,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 100%; /* Ensures vertical centering if parent has height */
 }
 .center-text {
   text-align: center;
@@ -102,9 +93,7 @@ body {
 }
 .padding-medium {
   padding: 1.5rem;
-}
-
-/* Animation Keyframes */
+} /* Animation Keyframes */
 @keyframes bounceIn {
   from {
     transform: scale(0.95);
@@ -133,17 +122,12 @@ body {
 }
 .bounce-in {
   animation: bounceIn 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-}
-
-/* =========================================
-   3. BUTTONS & INPUTS
-   ========================================= */
+} /* ========================================= 3. BUTTONS & INPUTS ========================================= */
 button {
   cursor: pointer;
   transition: 0.2s;
   font-family: inherit;
 }
-
 .btn-primary,
 .btn-primary-modern,
 .btn-danger {
@@ -168,7 +152,6 @@ button {
 .btn-danger:hover {
   opacity: 0.9;
 }
-
 .btn-secondary,
 .btn-ghost {
   background: var(--surface);
@@ -194,7 +177,6 @@ button {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 .btn-icon,
 .btn-icon-float,
 .close-icon-btn {
@@ -219,9 +201,7 @@ button {
 .white-btn {
   color: white;
   opacity: 0.9;
-}
-
-/* Input Fields */
+} /* Input Fields */
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -244,7 +224,6 @@ button {
   color: var(--text-muted);
   font-size: 0.8rem;
 }
-
 .input-wrapper,
 .input-wrapper-modern,
 .select-wrapper-modern,
@@ -257,7 +236,6 @@ button {
 .select-wrapper-custom {
   width: 70%;
 } /* Toolbar dropdown width */
-
 input,
 select {
   width: 100%;
@@ -276,7 +254,22 @@ select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
 }
-
+.input-sgor {
+  border-color: var(--high) !important;
+  animation: shake 0.3s;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
 .input-icon,
 .chevron {
   position: absolute;
@@ -290,8 +283,95 @@ select:focus {
 .chevron {
   right: 12px;
 }
-
-/* File Dropzone */
+.input-icon-right {
+  position: absolute;
+  right: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  z-index: 10;
+  user-select: none;
+}
+.input-icon-right:hover {
+  color: var(--primary);
+} /* Custom Select Styles (For Priority Dropdown) */
+.custom-priority-select {
+  /* Inherits common styles from .input-wrapper-modern */
+  height: 44px; /* Ensure height matches other inputs */
+  cursor: pointer;
+}
+.custom-priority-select:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+.custom-priority-select.open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.custom-select-display {
+  width: 100%;
+  padding: 12px 12px 12px 42px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: 0.2s;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+}
+.custom-priority-select.open .custom-select-display {
+  border-bottom-color: transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.custom-priority-select .chevron {
+  z-index: 10;
+}
+.custom-options-list {
+  position: absolute;
+  top: 100%; /* Position right below the display area */
+  left: 0;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 20;
+  box-shadow: var(--shadow);
+}
+.custom-options-list li {
+  padding: 10px 12px 10px 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.custom-options-list li:hover {
+  background: var(--bg-secondary);
+}
+.custom-options-list li:last-child {
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+} /* Priority List Icons Colors */
+.icon-high {
+  color: var(--high);
+}
+.icon-medium {
+  color: var(--med);
+}
+.icon-low {
+  color: var(--low);
+} /* File Dropzone */
 .file-dropzone {
   display: block;
   background: var(--input-bg);
@@ -328,11 +408,7 @@ select:focus {
 .secondary-text {
   font-size: 0.8rem;
   color: var(--text-muted);
-}
-
-/* =========================================
-   4. LAYOUT & AUTH
-   ========================================= */
+} /* ========================================= 4. LAYOUT & AUTH ========================================= */
 .auth-container {
   flex: 1;
   display: flex;
@@ -374,7 +450,6 @@ select:focus {
 .brand-large .icon-large {
   font-size: 2.5rem;
 }
-
 .navbar {
   background: var(--surface);
   padding: 0.8rem 2rem;
@@ -409,14 +484,11 @@ select:focus {
   border-color: var(--high);
   color: var(--high);
 }
-
 .container {
   padding: 0 2rem 0 2rem;
   margin: 0 auto;
   width: 100%;
-}
-
-/* Toolbar & Search */
+} /* Toolbar & Search */
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -458,18 +530,12 @@ select:focus {
   height: 24px;
   background: var(--border);
   margin: 0 5px;
-}
-
-/* =========================================
-   5. TASK GRID & LIST
-   ========================================= */
+} /* ========================================= 5. TASK GRID & LIST ========================================= */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(18%, 1fr));
   gap: 1rem;
-}
-
-/* Card Style */
+} /* Card Style */
 .card {
   background: var(--surface);
   border-radius: 12px;
@@ -518,7 +584,6 @@ select:focus {
   background: rgba(16, 185, 129, 0.15);
   color: var(--low);
 }
-
 .card-meta {
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -532,7 +597,6 @@ select:focus {
   align-items: center;
   gap: 6px;
 }
-
 .card-actions {
   margin-top: auto;
   padding-top: 15px;
@@ -556,9 +620,7 @@ select:focus {
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 0.8rem;
-}
-
-/* List Style */
+} /* List Style */
 .list-layout {
   display: flex;
   flex-direction: column;
@@ -597,9 +659,7 @@ select:focus {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
-}
-
-/* Completed State */
+} /* Completed State */
 .task-done {
   opacity: 0.6;
   background-color: var(--bg-secondary);
@@ -614,11 +674,7 @@ select:focus {
 .btn-check-active {
   color: var(--low) !important;
   background: rgba(16, 185, 129, 0.1) !important;
-}
-
-/* =========================================
-   6. MODALS
-   ========================================= */
+} /* ========================================= 6. MODALS ========================================= */
 .modal {
   position: fixed;
   inset: 0;
@@ -655,7 +711,6 @@ select:focus {
   max-width: 95vw;
   height: 85vh;
 }
-
 .modal-header-modern,
 .viewer-header {
   padding: 1rem;
@@ -695,9 +750,7 @@ select:focus {
   padding: 1rem;
   border-top: 1px solid var(--border);
   gap: 10px;
-}
-
-/* PDF Specifics */
+} /* PDF Specifics */
 .viewer-body {
   flex: 1;
   overflow: auto;
@@ -738,9 +791,12 @@ select:focus {
   font-variant-numeric: tabular-nums;
   min-width: 80px;
   text-align: center;
+} /* Report & Info Styles */
+.summary-body {
+  padding: 2rem;
+  flex: 1;
+  overflow-y: auto;
 }
-
-/* Report & Info Styles */
 .report-summary-box {
   background: linear-gradient(to right, rgba(99, 102, 241, 0.1), transparent);
   border-left: 4px solid var(--primary);
@@ -776,9 +832,7 @@ select:focus {
   padding-left: 1.2rem;
   list-style: disc;
   color: var(--text-muted);
-}
-
-/* Dashboard Info Stats */
+} /* Dashboard Info Stats */
 .progress-track {
   width: 100%;
   height: 12px;
@@ -839,12 +893,7 @@ select:focus {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-}
-
-/* Misc */
-/* --- PAGINATION UPDATES --- */
-
-/* Wrapper to spread items apart */
+} /* Misc */ /* --- PAGINATION UPDATES --- */ /* Wrapper to spread items apart */
 .pagination-container {
   display: flex;
   justify-content: space-between; /* Pushes Selector to left, Buttons to right */
@@ -853,16 +902,12 @@ select:focus {
   padding-bottom: 2rem;
   border-top: 1px solid var(--border); /* Optional: adds a nice separator line */
   padding-top: 1rem;
-}
-
-/* Grouping the buttons together */
+} /* Grouping the buttons together */
 .page-nav-group {
   display: flex;
   align-items: center;
   gap: 15px;
-}
-
-/* The "Rows per page" dropdown style */
+} /* The "Rows per page" dropdown style */
 .pagination-select {
   background: var(--surface);
   color: var(--text);
@@ -875,13 +920,10 @@ select:focus {
   margin-left: 8px;
   width: auto; /* Overrides the 100% width from general input styles */
 }
-
 .rows-selector {
   display: flex;
   align-items: center;
-}
-
-/* Mobile Tweaks: Stack them vertically on small screens */
+} /* Mobile Tweaks: Stack them vertically on small screens */
 @media (max-width: 600px) {
   .pagination-container {
     flex-direction: column;
@@ -928,7 +970,6 @@ select:focus {
   animation: spin 1s linear infinite;
   margin-bottom: 10px;
 }
-
 @media (max-width: 900px) {
   .list-header,
   .btn-text-desktop {
